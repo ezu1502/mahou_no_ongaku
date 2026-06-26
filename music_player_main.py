@@ -17,7 +17,7 @@ sourcefolder = rf"C:\Users\{user}\Mahou no Ongaku"
 pygame.mixer.init()
 
 
-now_playing = False
+should_be_playing = False
 is_it_paused = False
 
 # IMPORT + VARIÁVEIS INICIAIS + PYGAME INIT
@@ -33,7 +33,7 @@ def askget_music_number():
 
 
 def play_song(path):
-    global now_playing
+    global should_be_playing
 
     if path is None:
         print("Número inválido:")
@@ -43,7 +43,7 @@ def play_song(path):
     justthename = os.path.basename(path)
     stylizedname = f"< {justthename} >"
     print("Now Playing: ", stylizedname)
-    now_playing = True
+    should_be_playing = True
    
        
 #Manda o Pygame tocar a música e avisa o update()
@@ -84,31 +84,31 @@ def tick():
     #anda 1 frame
 
 def deal_with_song_status():
-    global now_playing
+    global should_be_playing
     global is_it_paused
     is_it_busy = pygame.mixer.music.get_busy()
     #reallyplaying = pygame.mixer.music.get_busy()
 #pygame.mixer.music.
     check_key = check_key_and_return()
-    if check_key == "pause":
-        is_it_paused = True
-    if check_key == "unpause":
-        is_it_paused = False
-    if check_key == "stop":
-        ask_leave_or_play_new_song()
 
-
-#BUG AQUI!!!!
-
-    if(now_playing and not is_it_paused):
+    if(should_be_playing and check_key == "pause"):
         pygame.mixer.music.pause()
-
-    elif(now_playing and is_it_paused):
+        is_it_paused = True
+    elif(should_be_playing and check_key == "unpause"):
         pygame.mixer.music.unpause()
-    elif(now_playing and not is_it_busy and not is_it_paused):
-        print("Cabou a música kkkkkkkk")
-        now_playing = False
+        is_it_paused = False
+    elif(should_be_playing and check_key == "stop"):
+        pygame.mixer.music.stop()
+        print("Music Stopped.")
+        should_be_playing = False
+        is_it_paused = False
         ask_leave_or_play_new_song()
+    elif(should_be_playing and not is_it_busy and not is_it_paused):
+        print("Cabou a música kkkkkkkk")
+        should_be_playing = False
+        ask_leave_or_play_new_song()
+        
+
 #Checa o status da música e avisa se tiver acabado, também chama o cumpridor de comandos
 
 
