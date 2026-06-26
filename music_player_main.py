@@ -3,8 +3,10 @@ import os
 import getpass 
 import pygame
 from pygame.mixer import music as pymusic
-import keyboardreceiver as controller
+import keyboard_receiver as controller
 from file_handler import load_music_list, showmusiclist, get_song_full_path
+from state_handler import set_state_inmenu, set_state_playing, set_state_paused, check_state
+from player_actions import pause_song, play_song, stop_song, unpause_song
 #import Player Controller
 
 
@@ -17,11 +19,12 @@ sourcefolder = rf"C:\Users\{user}\Mahou no Ongaku"
 
 pygame.mixer.init()
 
-
-should_be_playing = False
-is_it_paused = False
-
+player_state = {
+"should_be_playing": False,
+"is_it_paused": False
+}
 # IMPORT + VARIÁVEIS INICIAIS + PYGAME INIT
+
 
 def askget_music_number():
     while True:
@@ -33,20 +36,8 @@ def askget_music_number():
             continue
 
 
-def play_song(path):
-    global should_be_playing
 
-    if path is None:
-        print("Número inválido:")
-        return
-    pymusic.load(path)
-    pymusic.play()
-    justthename = os.path.basename(path)
-    stylizedname = f"< {justthename} >"
-    print("Now Playing: ", stylizedname)
-    should_be_playing = True
-   
-       
+
 #Manda o Pygame tocar a música e avisa o update()
 
 #loadedlist = loaded_music_list
@@ -58,7 +49,7 @@ def show_list_and_play(loadedlist, folder):
         numberweget = askget_music_number()
         wannaplay = get_song_full_path(numberweget, loadedlist, folder)
         if wannaplay is not None:
-            play_song(wannaplay)
+            play_song(wannaplay, player_state)
             return
 #Faz as quatro funções mais importantes do file_handler em sequência: Mostra a lista de músicas, obtém o caminho da
 #música e manda o Pygame tocar, também verifica se o número que o usuário digitou é válido
@@ -82,53 +73,39 @@ def menu():
 
 
 
-def pause_song():
-    global is_it_paused
-    pymusic.pause()
-    is_it_paused = True
 
-def unpause_song():
-    global is_it_paused
-    pymusic.unpause()
-    is_it_paused = False
-def stop_song():
-    global is_it_paused
-    global should_be_playing
-    pymusic.stop()
-    should_be_playing = False
-    is_it_paused = False
 
 def deal_with_song_status():
-    global should_be_playing
-    global is_it_paused
     is_it_busy = pymusic.get_busy()
-    check_key = check_key_and_return()
+    check_key = check_key_and_return(player_state)
+    state = check_state(player_state)
 
-    if(should_be_playing and check_key == "pause"): #Spacebar
-       pause_song()
-    elif(should_be_playing and check_key == "unpause"): #Spacebar
-       unpause_song() 
-    elif(should_be_playing and check_key == "stop"): #Música parando por comando do usuário
+    if(state == "playing" and check_key == "pause"): #Spacebar
+       pause_song(player_state)
+    elif(state == "paused" and check_key == "unpause"): #Spacebar
+       unpause_song(player_state) 
+    elif(state in ("playing", "paused") and check_key == "stop"): #Música parando por comando do usuário
         print("Music Stopped.")
-        stop_song()
+        stop_song(player_state)
         menu()
-    elif(should_be_playing and not is_it_busy and not is_it_paused): #Música parou sozinha
+    elif(state == "playing" and not is_it_busy): #Música parou sozinha
         print("Song ended!")
-        stop_song()
+        stop_song(player_state)
         menu()
         
 
 #Checa o status da música e avisa se tiver acabado, também chama o cumpridor de comandos
 
 
-def check_key_and_return():
+def check_key_and_return(player_state):
     command = controller.command_detector()
+    state = check_state(player_state)
    # print(command)
    # SPACEBAR
     if command == " ":
-        if not is_it_paused:
+        if state == "playing":
             return "pause"
-        elif is_it_paused:
+        elif state == "paused":
             return("unpause")
     elif command == "s":
             return("stop")
