@@ -70,9 +70,13 @@ def menu():
         else:
             continue  
 
+def in_song_mode():
+    ...
 
-
-
+def counter(seconds):
+    currenttime = time.monotonic()
+    targettime = time.monotonic() + seconds
+    
 
 
 def deal_with_song_status():
@@ -82,16 +86,24 @@ def deal_with_song_status():
 
     if(state == "playing" and check_key == "pause"): #Spacebar
        pause_song(player_state)
+    
     elif(state == "paused" and check_key == "unpause"): #Spacebar
        unpause_song(player_state) 
+    
     elif(state in ("playing", "paused") and check_key == "stop"): #Música parando por comando do usuário
         print("Music Stopped.")
         stop_song(player_state)
         menu()
+    
     elif(state == "playing" and not is_it_busy): #Música parou sozinha
         print("Song ended!")
         stop_song(player_state)
         menu()
+    
+    elif(state == "playing" and is_it_busy):
+        in_song_mode()
+
+
         
 
 #Checa o status da música e avisa se tiver acabado, também chama o cumpridor de comandos
