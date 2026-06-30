@@ -9,6 +9,7 @@ def play_song(path, player_state):
     if path is None:
         print("Número inválido:")
         return
+    
     pymusic.load(path)
     pymusic.play()
     justthename = os.path.basename(path)
