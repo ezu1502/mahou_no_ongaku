@@ -6,10 +6,10 @@ from pygame.mixer import music as pymusic
 import keyboard_receiver as controller
 import file_handler as fH
 import state_handler as stateH 
-import player_actions as music_Control
+import music_control as music_Control
 from difflib import get_close_matches as fuzzymatch
-import short_math as mycalc
-import fuzzy_matcher
+import toolkit.calc as mycalc
+import toolkit.fuzzy_matcher as fuzzy_matcher
 
 program_is_running = True
 FPS = 60
@@ -24,23 +24,27 @@ pygame.mixer.init()
 player_state = {
 
     "mode" : "welcomescreen", #pode ser "playing", "paused", "menu", "stopped", "welcomescreen"
-    "welcome_was_shown" : False
-
+    "welcome_was_shown" : False,
+    "paused_was_shown" : False,
+    "last_song_started_at" : 0
 }
+
+
+
 
 # IMPORT + VARIÁVEIS INICIAIS + PYGAME INIT
 
 def welcome_screen():
+    default_message = f"WELCOME to Mahou no Ongaku, the True Music Player!\nPress [ANY KEY] to continue!"
     if not player_state["welcome_was_shown"]:
-        print("WELCOME to Mahou no Ongaku, the True Music Player!")
-        print("Press [ANY KEY] to continue!")
-
+        print(default_message)
         player_state["welcome_was_shown"] = True
 
     anykey = controller.anykey_detector()
     if anykey:
         stateH.set_state_menu(player_state)
         player_state["welcome_was_shown"] = False
+        avoidbug = controller.anykey_detector()
 
 
 def quit_program():
@@ -53,7 +57,7 @@ def stopped():
     if wannacontinue.lower() == "l":
         quit_program()
     elif wannacontinue.lower() == "p":
-        stateH.set_state_menu()
+        stateH.set_state_menu(player_state)
         return
         
 
@@ -70,34 +74,65 @@ def check_key_and_return(player_state):
     elif command == "s":
             return("stop")
 
+def get_command_from_key():
+    command = controller.command_detector()
+    if command == " ":
+       return "toggle" #playpause
+    elif command == "s" or command == "esc":
+       return "stop"
+    elif command == "m":
+        return "menu"
 
 def in_song_mode(): #Vai rodar se o state for playing, e estiver tudo bonitinho, sem ninguém pausando nem nada
-    ...
+    check_key = get_command_from_key()
+    if check_key == "toggle":
+        music_Control.pause_song(player_state)
+        player_state["paused_was_shown"] = False
+    
+
+    
+
+
+def paused_mode():
+    if not player_state["paused_was_shown"]:
+        print(" < PAUSED > ", end = "\n\n")
+        print("[SPACEBAR] - RESUME Song\n[M] - Go to MENU")
+        player_state["paused_was_shown"] = True
+
+    check_key = get_command_from_key()
+
+    if check_key == "toggle":
+        music_Control.unpause_song(player_state)
+        player_state["paused_was_shown"] = False
+    elif check_key == "menu":
+        stateH.set_state_menu(player_state)
+        player_state["paused_was_shown"] = False    
+    elif check_key == "stop":
+        stateH.set_state_stopped(player_state)
+        player_state["paused_was_shown"] = False
+
+
+
+
+
+    
 
 
 
 
 def deal_with_song_status():
     is_it_busy = pymusic.get_busy()
-    check_key = check_key_and_return(player_state)
     state = stateH.check_state(player_state)
 
-    if(state == "playing" and check_key == "pause"): #Spacebar
-       music_Control.pause_song(player_state)
-    
-    elif(state == "paused" and check_key == "unpause"): #Spacebar
-       music_Control.unpause_song(player_state) 
-    
-    elif(state in ("playing", "paused") and check_key == "stop"): #Música parando por comando do usuário
-        print("Music Stopped.")
-        music_Control.stop_song(player_state)
-
-    elif(state == "playing" and not is_it_busy): #Música parou sozinha
+    if(state == "playing" and not is_it_busy): #Música parou sozinha
         print("Song ended!")
-        music_Control.stop_song(player_state)
-    
+        music_Control.stop_song(player_state)   
     elif(state == "playing" and is_it_busy):
         in_song_mode()
+    elif(state == "paused"):
+        paused_mode()
+    elif(state == "stopped"):
+        stopped()
 
 
 # LIDAM COM CAMINHO DE MÚSICA 
@@ -148,6 +183,8 @@ def get_song_path():
             return songpath
         except Exception as error:
             print("Couldn't find the chosen song.", error)
+            #TODO fazer uma última verificação de qual música quer
+            stateH.set_state_stopped(player_state)
             return None
         
 def get_path_and_play():
@@ -158,6 +195,8 @@ def get_path_and_play():
     try:
         music_Control.play_song(songpath, player_state)
     except:
+       stateH.set_state_stopped(player_state)
+       print("Task failed.")
        return
     
 #Se o caminho for válido, toca a música. Senão, manda uma mensagem de erro
@@ -181,7 +220,7 @@ def realtick(initial_time):
 def update():
     state = stateH.check_state(player_state)
 
-    if state == "playing":
+    if state == "playing" or state == "paused":
         deal_with_song_status()
     elif state == "menu":
         get_path_and_play()

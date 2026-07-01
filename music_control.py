@@ -19,7 +19,6 @@ def play_song(path, player_state):
 
 def pause_song(player_state):
     pymusic.pause()
-    print(" --PAUSED-- ")
     set_state_paused(player_state)
 def unpause_song(player_state):
     pymusic.unpause()
