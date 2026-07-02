@@ -31,6 +31,8 @@ class MusicPlayer:
     def check_state(self):
         return self.mode
 
+
+
     def play_song(self, path):
         if self.mode != "playing":
             if path is None:
@@ -72,12 +74,6 @@ class MusicPlayer:
         return self.welcome_was_shown
     def check_pause_was_shown(self):
         return self.pause_was_shown
-
-
-
-class Button(tk.Button):
-    def __init__(self):
-        pass
 
 
 

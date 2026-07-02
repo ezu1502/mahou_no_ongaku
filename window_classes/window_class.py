@@ -1,5 +1,8 @@
 import tkinter as tk
 import os
+from .button_class import MahouButton
+
+
 class MahouWindow:
 
     def __init__(self, player, dimensions = "600x600"):
@@ -18,9 +21,10 @@ class MahouWindow:
         self.status_label = tk.Label(self.root, text = "Status: Ready")
         self.status_label.pack(pady = 10)
         
-    
-        self.test_button = tk.Button(self.root, text = "Text Button", command = self.test_button_pressed)
-        self.test_button.pack(pady = 30) 
+        self.play_button = MahouButton(self.root, "▶ Play", self.test_button_pressed)
+
+        # self.test_button = tk.Button(self.root, text = "Text Button", command = self.test_button_pressed)
+        # self.test_button.pack(pady = 30) 
 
     def test_button_pressed(self):
         self.status_label.config(text = "Status: Button Pressed")
@@ -32,6 +36,8 @@ class MahouWindow:
         self.root.destroy()
         os._exit(0)
 
+
+            
 
 
 

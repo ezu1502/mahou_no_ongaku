@@ -9,7 +9,8 @@ from difflib import get_close_matches as fuzzymatch
 import toolkit.calc as mycalc
 import toolkit.fuzzy_matcher as fuzzy_matcher
 from music_player_class import MusicPlayer
-from window_class import MahouWindow
+from window_classes import MahouWindow, MahouButton
+
 program_is_running = True
 FPS = 60
 FRAME_TIME = 1/FPS
