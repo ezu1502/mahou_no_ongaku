@@ -2,7 +2,7 @@ import os; os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
 import time
 import logging
 from functools import wraps
-from PS import PS
+from ENUMS import PS, COLORS, painted_string
 
 from window import MahouWindow
 from player import MahouPlayer
@@ -12,7 +12,7 @@ logging.basicConfig(
     format = "%(levelname)-5s |  %(message)-30s -> CAST BY: \033[96m%(name)s\033[0m"
     )
 
-log = logging.getLogger("main")
+log = logging.getLogger(painted_string("main", COLORS.ORANGE))
 program_is_running = True
 FPS = 60
 FRAME_TIME = 1/FPS
@@ -45,11 +45,16 @@ def tick(function):
 
 
 def update():
+    if mahou_window.state == PS.SHUT_DOWN:
+        shut_down()
+        return
     mahou_window.root.update()
 
 def shut_down():
     global program_is_running
     program_is_running = False
+
+    log.info("Program Terminated")
 
 @tick
 def mainloop():
