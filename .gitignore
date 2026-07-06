@@ -1,2 +1,12 @@
+# Python cache
 *.pyc
 __pycache__/
+
+# PyInstaller
+build/
+dist/
+*.spec
+*.exe
+
+# Builds locais
+Mahou\ no\ Ongaku\ -\ True\ Player\ Versions/
