@@ -32,19 +32,81 @@ class MahouWindow:
 
 # ------------------------ #01 - PLAYER CONTROLS
 
+    def play_song_by_index(self, index: int):
+        current_path: Path = self.path_list[index]
+        self.playing_song_index = index
+        self.mahou_player.load_song(current_path)
+        self.mahou_player.play_song()
+        self.show_playing_label
+
     def play_song(self):
         if self.selection_path is None:
             log.warning("No song was selected!")
             return
         
-        self.mahou_player.play_song(self.selection_path)
+        self.mahou_player.load_song(self.selection_path)
+        self.mahou_player.play_song()
 
-        self.show_playing_label()
+        self.playing_song_index: int | None = self.selected_index
+        # self.selected_index = None
+
+        if(self.playing_song_index is not None):
+            self.playing_song_name = self.path_list[self.playing_song_index].stem
+        else:
+            log.warning("from play_song(self): self.playing_song_index is None!")
+
+        self.show_playing_label(self.playing_song_name)
+        # self.selection_path = None
+
+    def play_previous_song(self):
+        if self.playing_song_index is not None:
+            previous_song_index: int = (self.playing_song_index - 1)
+
+        previous_song_path = self.path_list[previous_song_index]
+        self.mahou_player.load_song(previous_song_path)
+        self.mahou_player.play_song()
+
+        self.playing_song_index = previous_song_index
+
+        if(self.playing_song_index is not None):
+            self.playing_song_name = self.path_list[self.playing_song_index].stem
+        else:
+            log.warning("from play_previous_song(self): self.playing_song_index is None!")
+
+        self.selected_index = None
         self.selection_path = None
+
+        self.show_playing_label(self.playing_song_name)
+
+    def play_next_song(self):
+        if self.playing_song_index is not None:
+            next_song_index: int = (self.playing_song_index + 1)
+
+        next_song_path = self.path_list[next_song_index]
+        self.mahou_player.load_song(next_song_path)
+        self.mahou_player.play_song()
+
+        self.playing_song_index = next_song_index
+
+        if(self.playing_song_index is not None):
+            self.playing_song_name = self.path_list[self.playing_song_index].stem
+        else:
+            log.warning("from play_next_song(self): self.playing_song_index is None!")
+
+        self.selected_index = None
+        self.selection_path = None
+
+        self.show_playing_label(self.playing_song_name)
+        
 
     def pause_song(self) -> None:
         self.mahou_player.pause_song()
 
+    def stop_song(self) -> None:
+        self.mahou_player.stop_song()
+
+    def load_song(self) -> None:
+        self.mahou_player.load_song()
 
     def unpause_song(self) -> None:
         self.mahou_player.unpause_song()
@@ -56,7 +118,75 @@ class MahouWindow:
             case PS.PLAYING:
                 self.pause_song()
             case PS.PAUSED:
-                self.unpause_song()    
+                self.unpause_song()
+
+
+    def goto_previous_song(self):
+        log.debug("'Previous' button pressed")
+
+        if self.playing_song_index is None:
+            log.warning("self.playing_song_index is None!")
+            return
+        
+
+        previous_song_index = self.playing_song_index - 1
+        self.selection_path = self.path_list[previous_song_index]
+        previous_song_selection = self.playing_song_index - 1
+
+        self.music_listbox.selection_clear(self.playing_song_index)
+        self.music_listbox.select_set(previous_song_selection)
+
+        match self.state:
+            case PS.PLAYING:
+                self.stop_song()
+                self.play_previous_song()
+            case PS.PAUSED:
+                self.stop_song()
+                self.load_song()
+
+
+    def goto_next_song(self):
+        log.debug("'Next' button pressed")
+        if self.playing_song_index is None:
+            log.warning("self.playing_song_index is None!")
+            return
+        
+
+        next_song_index = self.playing_song_index + 1
+        self.selection_path = self.path_list[next_song_index]
+        next_selection = self.playing_song_index + 1
+
+        self.music_listbox.selection_clear(self.playing_song_index)
+        self.music_listbox.select_set(next_selection)
+
+        match self.state:
+            case PS.PLAYING:
+                self.stop_song()
+                self.play_next_song()
+            case PS.PAUSED:
+                self.stop_song()
+                self.load_song()
+
+
+    def restart_song(self):
+        log.debug("Restart Button pressed")
+
+        if self.state == PS.PLAYING:
+            self.stop_song()
+            self.play_song()
+
+            log.debug("Restarted song successfully")
+        elif self.state == PS.PAUSED:
+            self.stop_song()
+            self.load_song()
+
+            log.debug("Restarted song successfully")
+        else:
+            log.warning("No song to restart, dummy!")
+
+        
+
+        
 
 # ------------------------ #02 - STATE MANAGER
 
@@ -123,7 +253,7 @@ class MahouWindow:
 
         self.selection_path = Path(self.path_list[selection_index])
         self.selected_song = self.selection_path.stem
-
+        self.selected_index = selection_index        
         # print(self.selection_path)
 
         # print(selection_name)
@@ -166,6 +296,7 @@ class MahouWindow:
         self.path_list = []
 
         self.selection_path: Path | None = None
+        self.selected_index: int | None = None
 
         self.default_folder = Path.home() / "Mahou no Ongaku"
         log.debug("Window init lists and folder created")
@@ -174,20 +305,32 @@ class MahouWindow:
 # ----------------------- #05 - SCREEN FACTORY
 
     def make_main_screen(self):
-        self.title = self.make_mahou_label("Mahou no Ongaku", font = ("Banschrift", 30))
+        self.main_screen_frame = tk.Frame(self.root, bg = "#111111")
+        self.main_screen_frame.pack(fill = "both", expand = True)
+
+        self.title = self.make_mahou_label(self.main_screen_frame, "Mahou no Ongaku", font = ("Banschrift", 30))
         self.title.pack(pady = 20)
 
-        self.music_listbox = self.make_mahou_listbox()
+        self.music_listbox = self.make_mahou_listbox(self.main_screen_frame)
         self.music_listbox.pack(padx = 20, pady = (0, 20), side = "left", fill = "both")
         self.music_listbox.bind("<<ListboxSelect>>", self.get_selection_from_listbox)
         
-        self.play_button = self.make_mahou_button("▶ PLAY", command = self.toggle)
+        self.play_button = self.make_mahou_button(self.main_screen_frame, "▶ PLAY", command = self.toggle)
         self.play_button.pack(pady = 10)
 
-        self.folder_button = self.make_mahou_button("Choose folder", command = self.get_folder_path)
+        self.folder_button = self.make_mahou_button(self.main_screen_frame, "Choose folder", command = self.get_folder_path)
         self.folder_button.pack()
 
-        self.scrollbar = self.make_mahou_scrollbar()
+        self.previous_song_button = self.make_mahou_button(self.main_screen_frame, "Restart song", command = self.restart_song)
+        self.previous_song_button.pack(pady = (10,0), padx = 10)
+        
+        self.previous_song_button = self.make_mahou_button(self.main_screen_frame, "Previous", command = self.goto_previous_song)
+        self.previous_song_button.pack(pady = (10,0), padx = 10)
+
+        self.next_song_button = self.make_mahou_button(self.main_screen_frame, "Next", command = self.goto_next_song)
+        self.next_song_button.pack(pady = 10, padx = 10)
+
+        self.scrollbar = self.make_mahou_scrollbar(self.main_screen_frame)
         self.scrollbar.pack(side = "right", fill = "y")
         self.music_listbox.config(yscrollcommand = self.scrollbar.set) #Pra scrollbar funcionar
         self.scrollbar.config(command = self.music_listbox.yview)
@@ -197,15 +340,15 @@ class MahouWindow:
 
 # - - - - - - - - - - - - - #06 SCREEN RESOURCES FACTORY
 
-    def show_playing_label(self):
-        self.playing_label = self.make_mahou_label(f"Now Playing: {self.selected_song}")
+    def show_playing_label(self, songname):
+        self.playing_label = self.make_mahou_label(self.main_screen_frame, f"Now Playing: {songname}")
         self.playing_label.pack()
         log.debug("playing label shown")
 
 
 # ----------------------- #07 WIDGET FACTORY
 
-    def make_mahou_label(self, wanted_text: str, **settings):
+    def make_mahou_label(self, parent, wanted_text: str, **settings):
         default_settings = {
             "font": ("Banschrift", 14),
             "bg": self.root.cget("bg") or "#000000",
@@ -217,9 +360,9 @@ class MahouWindow:
         chosen_settings = default_settings.copy()
         chosen_settings.update(settings)
 
-        return tk.Label(self.root, text = wanted_text, **chosen_settings)
+        return tk.Label(parent, text = wanted_text, **chosen_settings)
     
-    def make_mahou_button(self, button_text: str, command, **settings):
+    def make_mahou_button(self, parent, button_text: str, command, **settings):
         default_config = {
             "font": ("Bahnschrift", 14),
             "width": 20,
@@ -233,9 +376,9 @@ class MahouWindow:
         chosen_settings = default_config.copy()
         chosen_settings.update(settings)
 
-        return tk.Button(self.root, text = button_text, command = command, **chosen_settings)
+        return tk.Button(parent, text = button_text, command = command, **chosen_settings)
     
-    def make_mahou_listbox(self, **listbox_config):
+    def make_mahou_listbox(self, parent, **listbox_config):
         default_config = {
             "font": ("Segoe UI", 12),
             # "bg": parent.cget("bg") or "#000000",
@@ -253,9 +396,9 @@ class MahouWindow:
         chosen_config = default_config.copy()
         chosen_config.update(listbox_config)
 
-        return tk.Listbox(self.root, **chosen_config)
+        return tk.Listbox(parent, **chosen_config)
     
-    def make_mahou_scrollbar(self):
+    def make_mahou_scrollbar(self, parent):
         style = ttk.Style()
         style.theme_use("clam")
 
@@ -268,7 +411,7 @@ class MahouWindow:
             relief = "flat"
         )
 
-        return ttk.Scrollbar(self.root, orient = "vertical", style = "Purple.Vertical.TScrollbar")
+        return ttk.Scrollbar(parent, orient = "vertical", style = "Purple.Vertical.TScrollbar")
         
         
     

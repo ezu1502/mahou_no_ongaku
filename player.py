@@ -4,6 +4,7 @@ import logging
 from ENUMS import COLORS, painted_string, PS
 from typing import Callable
 from functools import wraps
+from pathlib import Path
 
 log = logging.getLogger(painted_string("MahouPlayer ☾", COLORS.PURPLE))
 
@@ -15,6 +16,8 @@ class MahouPlayer:
 
         self.window_set_state = None
         self.window_get_state = None
+
+        self.loaded_song_path: Path | None = None
 
 # ----------------- WINDOW STATE MANAGER
 
@@ -33,17 +36,25 @@ class MahouPlayer:
 
 
 # ------------------ MUSIC CONTROLS
+    def load_song(self, song_path):
+        Pymusic.load(song_path)
+        if song_path is not None:
+            self.loaded_song_path = Path(song_path)
+            log.debug(f"loaded {self.loaded_song_path} into MahouPlayer")
 
-    def play_song(self, song_path):
+
+    def play_song(self):
         current_state = self.get_state()
 
         if current_state != PS.PLAYING:    
-            Pymusic.load(song_path)
             Pymusic.play()
 
             self.set_state(PS.PLAYING)
 
-            song_name = song_path.stem
+            if self.loaded_song_path is not None:
+                song_name = self.loaded_song_path.stem
+            else:
+                log.warning("Loaded song path is None!")
             log.info(painted_string(f"Now Playing: {song_name}", COLORS.PURPLE))
         else:
                 log.warning("Already playing!")
@@ -59,3 +70,7 @@ class MahouPlayer:
     def unpause_song(self) -> None:
         Pymusic.unpause()
         self.set_state(PS.PLAYING)
+
+    def stop_song(self) -> None:
+        Pymusic.stop()
+        # self.set_state(PS.STOPPED)
