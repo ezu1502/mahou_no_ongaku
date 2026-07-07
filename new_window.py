@@ -5,6 +5,7 @@ from pathlib import Path
 from tkinter import filedialog as explorer
 from ENUMS import PS, COLORS, painted_string
 from tkinter import ttk
+from song_library import SongLibrary
 
 log = logging.getLogger("MahouWindow")
 
@@ -15,6 +16,8 @@ class MahouWindow:
         self.mahou_player = player
         self.mahou_player.window_set_state = self.set_state
         self.mahou_player.window_get_state = self.get_state
+
+        self.library = SongLibrary()
 
         log.debug("Player obj. received in window") #RECEIVING PLAYER
 

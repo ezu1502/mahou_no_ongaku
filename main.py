@@ -74,7 +74,7 @@ def shut_down():
 mahou_player = MahouPlayer()
 mahou_window = MahouWindow(mahou_player, dimensions = "900x600")
 
-
+mahou_window.start_ui_loop()
 mahou_window.root.mainloop()
 
 
