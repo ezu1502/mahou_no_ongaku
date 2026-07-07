@@ -3,17 +3,20 @@ import logging
 import os
 from pathlib import Path
 from tkinter import filedialog as explorer
-from ENUMS import PS, COLORS, painted_string
+from ENUMS import PS
+from colors import COLORS, painted_string
 from tkinter import ttk
 from song_library import SongLibrary
 
-log = logging.getLogger("MahouWindow")
+log = logging.getLogger(painted_string("MahouWindow", "#7AF9FD"))
 
 class MahouWindow:
-    def __init__(self, player, dimensions = "900x600"):
+    def __init__(self, player, app, dimensions = "900x600"):
 
         self.define_window(dimensions) #WINDOW DEFINITIONS
+        self.app = app
         self.mahou_player = player
+
         self.mahou_player.window_set_state = self.set_state
         self.mahou_player.window_get_state = self.get_state
 
@@ -22,25 +25,21 @@ class MahouWindow:
         log.debug("Player obj. received in window") #RECEIVING PLAYER
 
     # ------------- USEFUL VARIABLES
-        self.display_list = []
-        self.path_list = []
-
         self.playing_label_exists = False
         self.new_loaded_song = False
 
         self.selection_path: Path | None = None
         self.selected_index: int | None = None
 
-        self.default_folder = Path.home() / "Mahou no Ongaku"
         log.debug("Window init lists and folder created")
 
     # ------------------------------------------------------------------
 
-        self.state = PS.IN_MENU #DEFAULT STATE SET
+       
         self.make_main_screen() #DEFINING BUTTONS AND LISTBOX
 
-        if self.default_folder.exists():
-            self.set_folder_and_lists(self.default_folder) #DEFAULT_FOLDER SET
+        if self.library.default_folder is not None:
+            self.set_folder_and_lists(self.library.default_folder) #DEFAULT_FOLDER SET
 
 
 
@@ -60,7 +59,6 @@ class MahouWindow:
     def x_button_was_pressed(self):
         self.root.destroy()
         log.info("Window destroyed")
-        self.set_state(PS.SHUT_DOWN)
 
     def define_window(self, dimensions):
         self.root = tk.Tk()
@@ -84,11 +82,16 @@ class MahouWindow:
         #waveform, progress bar, animações, etc
         pass
 
+    def run(self):
+        log.debug("MahouWindow is now running")
+        self.start_ui_loop()
+        self.root.mainloop()
+
 #endregion
 #region ------------------ #01 - PLAYER CONTROLS
 
     def play_song_by_index(self, index: int):
-        current_path: Path = self.path_list[index]
+        current_path: Path = self.library.path_list[index]
         self.playing_song_index = index
 
         self.playing_song_name = current_path.stem
@@ -107,7 +110,7 @@ class MahouWindow:
         self.mahou_player.stop_song()
 
     def load_song_index(self, index) -> None:
-        path_to_load: Path = self.path_list[index]
+        path_to_load: Path = self.library.path_list[index]
         self.mahou_player.load_song(path_to_load)
         self.playing_song_index = index
 
@@ -115,7 +118,7 @@ class MahouWindow:
         self.mahou_player.unpause_song()
 
     def toggle(self):
-        match self.state:
+        match self.app.state:
             case PS.IN_MENU:
                 if self.selected_index is not None:
                     self.play_song_by_index(self.selected_index)
@@ -140,14 +143,14 @@ class MahouWindow:
         
         log.debug("'Previous' button pressed")
 
-        folder_length: int = len(self.path_list)
+        folder_length: int = len(self.library.path_list)
         print(self.selected_index)
         if self.selected_index <= 0:
             self.selected_index = (folder_length - 1)
         else:
             self.selected_index -= 1
 
-        match self.state:
+        match self.app.state:
             case PS.PLAYING:
                 self.stop_song()
                 self.play_song_by_index(self.selected_index)
@@ -161,13 +164,13 @@ class MahouWindow:
             return
         log.debug("'Previous' button pressed")
 
-        folder_length: int = len(self.path_list)
+        folder_length: int = len(self.library.path_list)
         if self.selected_index >= (folder_length - 1):
             self.selected_index = 0
         else:
             self.selected_index += 1
 
-        match self.state:
+        match self.app.state:
             case PS.PLAYING:
                 self.stop_song()
                 self.play_song_by_index(self.selected_index)
@@ -180,12 +183,12 @@ class MahouWindow:
     def restart_song(self):
         log.debug("Restart Button pressed")
 
-        if self.state == PS.PLAYING:
+        if self.app.state == PS.PLAYING:
             self.stop_song()
             self.play_song_by_index(self.playing_song_index)
             log.debug("Restarted song successfully")
 
-        elif self.state == PS.PAUSED:
+        elif self.app.state == PS.PAUSED:
             self.stop_song()
             self.load_song_index(self.playing_song_index)
 
@@ -197,14 +200,12 @@ class MahouWindow:
 
 #region ------------------ #02 - STATE MANAGER
 
-    def set_state(self, state: PS) -> None:
-        self.state = state
-        if state != PS.SHUT_DOWN:
-            log.debug(f"window state defined to {state}")
+    def set_state(self, state: PS):
+        self.app.set_state(state)
         self.update_UI_by_state()
 
     def update_UI_by_state(self):
-        match self.state:
+        match self.app.state:
             case PS.PLAYING:
                 self.play_button.config(text = "PAUSE")
             case PS.PAUSED:
@@ -212,7 +213,7 @@ class MahouWindow:
         log.debug("UI updated by state")
 
     def get_state(self) -> PS:
-        return self.state
+        return self.app.state
 
 #endregion
 
@@ -227,27 +228,11 @@ class MahouWindow:
         self.set_folder_and_lists(folder_path)
 
     def set_folder_and_lists(self, folder_path: Path):
-        if not folder_path:
-            log.warning("Exception: path is null")
-            return None
-        
-        
+        self.library.set_folder(folder_path)
+        self.library.set_lists_from_folder(folder_path)
 
-        self.sourcefolder = folder_path
-        self.path_list = [file for file in folder_path.iterdir() if file.is_file()]
-        log.debug("pathlist created")
-
-        
-        self.display_list.clear()
         self.music_listbox.delete(0, tk.END)
-
-        for indx, name in enumerate(self.path_list, start = 1):
-            justname = name.stem
-            display_name = f"{indx} - {justname}"
-            self.display_list.append(display_name)
-        log.debug("display list created")
-        
-        self.set_listbox_musiclist(self.display_list)
+        self.set_listbox_musiclist(self.library.display_list)
 
     def set_listbox_musiclist(self, list_to_add):
         for song in list_to_add:
@@ -261,7 +246,7 @@ class MahouWindow:
         selection_index = selection[0]
         self.selected_index = selection_index   
 
-        self.selection_path = Path(self.path_list[selection_index])
+        self.selection_path = Path(self.library.path_list[selection_index])
         self.selected_song = self.selection_path.stem
             
         # print(self.selection_path)

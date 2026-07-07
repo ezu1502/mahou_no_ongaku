@@ -1,12 +1,13 @@
 import pygame
 from pygame.mixer import music as Pymusic
 import logging
-from ENUMS import COLORS, painted_string, PS
+from ENUMS import PS
+from colors import COLORS, painted_string
 from typing import Callable
 from functools import wraps
 from pathlib import Path
 
-log = logging.getLogger(painted_string("MahouPlayer ☾", COLORS.PURPLE))
+log = logging.getLogger(painted_string("MahouPlayer ☾", "#7700FF"))
 
 
 class MahouPlayer:
