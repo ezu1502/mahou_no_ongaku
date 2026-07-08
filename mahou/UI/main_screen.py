@@ -2,7 +2,8 @@ import tkinter as tk
 from tkinter import ttk
 import logging
 from mahou.colors import painted_string
-from pathlib import Path
+from mahou.core.ENUMS import PS
+from mahou.core.song import Song
 
 log = logging.getLogger(painted_string("main_screen", "#2424F7"))
 
@@ -13,7 +14,8 @@ class MainScreen(tk.Frame):
 
         self.root = root
         self.pack(fill = "both", expand = True)
-
+        self.playing_label_exists = False
+        self.sith_lord = sith_lord
         #region WIDGETS
 
         self.get_selection_from_listbox = sith_lord.get_selection_from_listbox
@@ -24,6 +26,9 @@ class MainScreen(tk.Frame):
         self.music_listbox = self.make_mahou_listbox(self)
         self.music_listbox.pack(padx = 20, pady = (0, 20), side = "left", fill = "both")
         self.music_listbox.bind("<<ListboxSelect>>", self.get_selection_from_listbox)
+
+        
+
 
         self.scrollbar = self.make_mahou_scrollbar(self)
         self.scrollbar.pack(side = "right", fill = "y")
@@ -77,6 +82,23 @@ class MainScreen(tk.Frame):
     def listbox_select(self, index):
         self.music_listbox.select_clear(0, tk.END)
         self.music_listbox.select_set(index)
+
+    def highlight_playing_song(self, index):
+        self.music_listbox.delete(index)
+        self.music_listbox.insert(index, f"▶ {self.sith_lord.library.song_list[index].display_name}")
+        self.music_listbox.itemconfig(index, fg = "#FFFF00", bg = "#333333")
+
+
+    def update_UI_by_state(self, state):
+        match state:
+            case PS.PLAYING:
+                self.play_button.config(text = "PAUSE")
+            case PS.PAUSED:
+                self.play_button.config(text = "▶ PLAY")
+            case PS.IN_MENU:
+                self.play_button.config(text = "▶ PLAY")
+        
+        log.debug("UI updated by state")    
 
         
     #endregion
@@ -150,7 +172,19 @@ class MainScreen(tk.Frame):
         
 #endregion
 
+    def set_listbox_musiclist(self, list_to_add: list[Song]):
+        self.music_listbox.delete(0, tk.END)
+        for indx, song in enumerate(list_to_add, start = 1):
+            self.music_listbox.insert(tk.END, f"   {song.display_name}")
 
+            true_indx = indx - 1
+
+            if true_indx % 2 == 0:
+                self.music_listbox.itemconfig(true_indx, bg = "#111111")
+            else:
+                self.music_listbox.itemconfig(true_indx, bg = "#1B1B1B")
+
+    
 
 
     

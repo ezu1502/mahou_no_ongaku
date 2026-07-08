@@ -4,7 +4,7 @@ import logging
 from mahou.core.ENUMS import PS
 from mahou.colors import painted_string, COLORS
 
-log = logging.getLogger(painted_string("MahouApp", "#FF00D4"))
+log = logging.getLogger(painted_string("app", "#FF00D4"))
 
 class App:
     def __init__(self) -> None:
@@ -23,4 +23,5 @@ class App:
         self.state = state
         if state != PS.SHUT_DOWN:
             log.debug(f"app state defined to {state}")
+        
         

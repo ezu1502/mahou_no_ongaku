@@ -3,7 +3,7 @@ import logging
 from mahou.colors import COLORS, painted_string
 from mahou.core.song import Song
 
-log = logging.getLogger(painted_string("SongLibrary", "#FF0000"))
+log = logging.getLogger(painted_string("song_library", "#FF0000"))
 
 class SongLibrary:
     def __init__(self) -> None:

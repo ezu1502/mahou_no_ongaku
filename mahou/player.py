@@ -7,7 +7,7 @@ from typing import Callable
 from functools import wraps
 from pathlib import Path
 
-log = logging.getLogger(painted_string("MahouPlayer ☾", COLORS.PURPLE))
+log = logging.getLogger(painted_string("mahou_player", COLORS.PURPLE))
 
 class MahouPlayer:
     def __init__(self):
@@ -40,7 +40,7 @@ class MahouPlayer:
         Pymusic.load(song_path)
         if song_path is not None:
             self.loaded_song_path = Path(song_path)
-            log.debug(f"loaded {self.loaded_song_path} into MahouPlayer")
+            log.debug(f"loaded {self.loaded_song_path.stem} into MahouPlayer")
 
 
     def play_song(self):
