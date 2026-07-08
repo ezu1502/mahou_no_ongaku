@@ -294,6 +294,11 @@ class MahouWindow:
         self.music_listbox = self.make_mahou_listbox(self.main_screen_frame)
         self.music_listbox.pack(padx = 20, pady = (0, 20), side = "left", fill = "both")
         self.music_listbox.bind("<<ListboxSelect>>", self.get_selection_from_listbox)
+
+        self.scrollbar = self.make_mahou_scrollbar(self.main_screen_frame)
+        self.scrollbar.pack(side = "right", fill = "y")
+        self.music_listbox.config(yscrollcommand = self.scrollbar.set) #Pra scrollbar funcionar
+        self.scrollbar.config(command = self.music_listbox.yview)
         
         self.play_button = self.make_mahou_button(
             self.main_screen_frame,
@@ -315,10 +320,7 @@ class MahouWindow:
         self.next_song_button = self.make_mahou_button(self.main_screen_frame, "Next", command = self.goto_next_song)
         self.next_song_button.pack(pady = 10, padx = 10)
 
-        self.scrollbar = self.make_mahou_scrollbar(self.main_screen_frame)
-        self.scrollbar.pack(side = "right", fill = "y")
-        self.music_listbox.config(yscrollcommand = self.scrollbar.set) #Pra scrollbar funcionar
-        self.scrollbar.config(command = self.music_listbox.yview)
+      
 
         log.debug("Main screen created")
 
@@ -327,7 +329,11 @@ class MahouWindow:
 
     def show_playing_label(self, songname):
         if not self.playing_label_exists:
-            self.playing_label = self.make_mahou_label(self.main_screen_frame, f"Now Playing: {songname}")
+            self.playing_label = self.make_mahou_label(
+                self.main_screen_frame,
+                f"Now Playing: {songname}",
+                font = ("Bahnschrift", 16)
+                )
             self.playing_label.pack()
             log.debug("playing label created and shown")
 
@@ -347,7 +353,7 @@ class MahouWindow:
 
     def make_mahou_label(self, parent, wanted_text: str, **settings):
         default_settings = {
-            "font": ("Banschrift", 14),
+            "font": ("Bahnschrift", 14),
             "bg": self.root.cget("bg") or "#000000",
             "fg": "#ffffff",
             "anchor": "center",
@@ -400,15 +406,15 @@ class MahouWindow:
         style.theme_use("clam")
 
         style.configure(
-            "Purple.Vertical.TScrollbar",
-            background = "#7b2cbf",
+            "Vertical.TScrollbar",
+            background = "#b8b8b8",
             troughcolor = "#1a1a1a",
             bordercolor = "#1a1a1a",
             arrowcolor = "#ffffff",
             relief = "flat"
         )
 
-        return ttk.Scrollbar(parent, orient = "vertical", style = "Purple.Vertical.TScrollbar")
+        return ttk.Scrollbar(parent, orient = "vertical", style = "Vertical.TScrollbar")
         
 
 #endregion
