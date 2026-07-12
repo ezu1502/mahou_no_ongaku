@@ -136,8 +136,6 @@ class MahouWindow:
     def reset_listbox_ui(self):
         self.main_screen.set_listbox_musiclist(self.library.song_list)
 
-
-
     def load_song_index(self, index) -> None:
         path_to_load: Path = self.library.song_list[index].path
         self.mahou_player.load_song(path_to_load)
@@ -224,6 +222,15 @@ class MahouWindow:
             log.debug("Restarted song successfully")
         else:
             log.warning("No song to restart, dummy!")
+
+    def get_player_pos(self):
+        return self.mahou_player.py
+
+
+    def update_song_time(self):
+        # self.root.after(500, self.get_player_pos)
+        pass
+        #TODO INCOMPLETO, NÃO DEU TEMPO DE TERMINAR!!!!!!!!!
 
 #endregion
 

@@ -78,3 +78,7 @@ class MahouPlayer:
     def play_without_load(self):
         Pymusic.play()
         self.set_state(PS.PLAYING)
+
+
+    def get_song_pos(self):
+        return Pymusic.get_pos() / 1000
