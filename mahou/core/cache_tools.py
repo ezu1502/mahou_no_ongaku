@@ -13,6 +13,13 @@ def save_song_cache(cache_file: Path, analysis_dictionary: dict) -> None:
         json.dump(analysis_dictionary, cache, ensure_ascii = False, indent = 4)
 
 
-def load_song_cache(cache_file: Path):
-    with cache_file.open("r", encoding = "utf-8") as cache:
-        return json.load(cache)
+def load_song_cache(cache_file: Path) -> None | dict:
+    if not cache_file.exists():
+        return None
+    
+    try:
+        with cache_file.open("r", encoding = "utf-8") as cache:
+            return json.load(cache)
+    except json.JSONDecodeError:
+        return None
+    

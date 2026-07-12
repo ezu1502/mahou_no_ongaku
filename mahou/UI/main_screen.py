@@ -15,6 +15,8 @@ class MainScreen(tk.Frame):
         self.root = root
         self.pack(fill = "both", expand = True)
         self.playing_label_exists = False
+        self.duration_label_exists = False
+
         self.sith_lord = sith_lord
         #region WIDGETS
 
@@ -27,9 +29,7 @@ class MainScreen(tk.Frame):
         self.music_listbox.pack(padx = 20, pady = (0, 20), side = "left", fill = "both")
         self.music_listbox.bind("<<ListboxSelect>>", self.get_selection_from_listbox)
 
-        
-
-
+    
         self.scrollbar = self.make_mahou_scrollbar(self)
         self.scrollbar.pack(side = "right", fill = "y")
         self.music_listbox.config(yscrollcommand = self.scrollbar.set) #Pra scrollbar funcionar
@@ -53,13 +53,12 @@ class MainScreen(tk.Frame):
         self.previous_song_button.pack(pady = (10,0), padx = 10)
 
         self.next_song_button = self.make_mahou_button(self, "Next", command = sith_lord.goto_next_song)
-        self.next_song_button.pack(pady = 10, padx = 10)
+        self.next_song_button.pack(pady = (10, 1), padx = 10)
 
         #endregion
 
         log.debug("Main screen created")
 
-        #endregion
 
 
     #region ------------------ #01 RESOURCES
@@ -71,7 +70,9 @@ class MainScreen(tk.Frame):
                 f"Now Playing: {songname}",
                 font = ("Bahnschrift", 16)
                 )
+            
             self.playing_label.pack()
+
             log.debug("playing label created and shown")
 
             self.playing_label_exists = True
@@ -79,6 +80,31 @@ class MainScreen(tk.Frame):
             self.playing_label.config(text = f"Now Playing: {songname}")
             log.debug("playing label changed")
 
+    def show_duration(self, duration: str):
+
+        if not self.duration_label_exists:
+            self.duration_label = self.make_mahou_label(self, wanted_text = duration, font = ("Trebuchet MS", 15, "bold"))
+            self.duration_label.pack()
+
+            log.debug("duration label created and shown")
+            self.duration_label_exists = True
+        else:
+            self.duration_label.config(text = duration)
+            log.debug("duration label changed")
+
+    def show_play_selection_song(self):
+        try:
+            self.play_selection_button.destroy()
+        except:
+            pass
+        finally:
+            self.play_selection_button = self.make_mahou_button(self, f"Play Selected Song", command = self.play_selected_song_button)
+            self.play_selection_button.pack()
+
+    
+    def play_selected_song_button(self):
+        self.sith_lord.play_selected_song_button()
+        self.play_selection_button.destroy()
     def listbox_select(self, index):
         self.music_listbox.select_clear(0, tk.END)
         self.music_listbox.select_set(index)

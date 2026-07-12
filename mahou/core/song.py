@@ -37,6 +37,7 @@ class Song:
     def duration(self):
         return self.analysis.duration
     
+    @property
     def base60_duration(self):
         return self.analysis.base60_duration
     
@@ -52,7 +53,26 @@ class Song:
     def save_cache(self, analysis_dictionary: dict) -> None:
         cache_tools.save_song_cache(self.cache_file, analysis_dictionary)
     
-    def load_cache(self) -> dict:
+    def cache_dict(self) -> dict | None:
         return cache_tools.load_song_cache(self.cache_file)
-    
+
+    def load_cache(self):
+        self.cache_dictionary = self.cache_dict()
+        if self.cache_dictionary is None:
+            return
+        
+#TODO TERMINAR ANÁLISE DO BUNSEKI E IMPLEMENTAR AQUI!
+
+
+        
+
+        
+
+
+
+
+
+
+
+
 #endregion
