@@ -28,6 +28,10 @@ class UISong:
     def title(self):
         return self._get("title")
     
+    @property
+    def attributes(self):
+        return (self.index, self.song_object)
+    
     def set(self, song_object: Song, index: int) -> None:
         self.song_object = song_object
         self.index = index
@@ -53,9 +57,6 @@ class MahouWindow:
         log.debug("Player and App obj. received in window")
 
     # ------------- USEFUL VARIABLES
-        
-        self.new_loaded_song = False
-
         self.selected_song = UISong(song_object = None, index = None)
         self.playing_song = UISong(song_object = None, index = None)
 
@@ -69,6 +70,12 @@ class MahouWindow:
         if self.library.default_folder is not None:
             self.set_folder_and_lists(self.library.default_folder) #DEFAULT_FOLDER SET
 
+
+    @property
+    def new_loaded_song(self):
+        play = self.playing_song.attributes
+        selected = self.selected_song.attributes
+        return play == selected if selected is not None else False
 
     def get_state(self) -> PS:
         return self.app.state
@@ -187,8 +194,9 @@ class MahouWindow:
 
     def play_selected_song_button(self):
         if self.selected_song.index is not None:
+            self.stop_song()
             self.play_song_by_index(self.selected_song.index)
-            self.new_loaded_song = False
+
 
     def goto_previous_song(self):
         if self.selected_song.index is None:
@@ -210,7 +218,7 @@ class MahouWindow:
                 self.play_song_by_index(self.selected_song.index)
             case PS.PAUSED:
                 self.stop_song()
-                self.new_loaded_song = True
+
 
 
     def goto_next_song(self):
@@ -230,7 +238,7 @@ class MahouWindow:
                 self.play_song_by_index(self.selected_song.index)
             case PS.PAUSED:
                 self.stop_song()
-                self.new_loaded_song = True
+
 
 
     def change_song(self):
@@ -250,26 +258,25 @@ class MahouWindow:
                 self.play_song_by_index(self.selected_song.index)
             case PS.PAUSED:
                 self.stop_song()
-                self.new_loaded_song = True
+
 
     
     def restart_song(self):
         log.debug("Restart Button pressed")
 
+        if self.playing_song.index is None:
+            return
+        
         if self.app.state == PS.PLAYING:
             self.stop_song()
-            self.play_song_by_index(self.playing_song_index)
+            self.play_song_by_index(self.playing_song.index)
             log.debug("Restarted song successfully")
 
         elif self.app.state == PS.PAUSED:
-            self.load_song_index(self.playing_song.index)
-
-
-            self.main_screen.highlight_playing_song(self.playing_song.index)
-
             self.stop_song(destroy_duration = False, destroy_playing_label = False)
-
-            log.debug("Restarted song successfully")
+            self.load_song_index(self.playing_song.index)
+            self.main_screen.highlight_playing_song(self.playing_song.index)
+            log.debug("Restarted song successfully in pause mode")
         else:
             log.warning("No song to restart, dummy!")
 
@@ -316,7 +323,6 @@ class MahouWindow:
 
         match self.get_state():
             case PS.PLAYING | PS.PAUSED:
-                self.new_selected_song = True
                 self.main_screen.show_play_selection_song()
 
 

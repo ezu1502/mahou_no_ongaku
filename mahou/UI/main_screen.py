@@ -105,6 +105,7 @@ class MainScreen(tk.Frame):
     def play_selected_song_button(self):
         self.sith_lord.play_selected_song_button()
         self.play_selection_button.destroy()
+
     def listbox_select(self, index):
         self.music_listbox.select_clear(0, tk.END)
         self.music_listbox.select_set(index)
@@ -198,19 +199,21 @@ class MainScreen(tk.Frame):
 
     def set_listbox_musiclist(self, list_to_add: list[Song]):
         self.music_listbox.delete(0, tk.END)
+
         
-        for indx, song in enumerate(list_to_add, start = 1):
+        
+        for indx, song in enumerate(list_to_add):
             self.listbox_list.append((indx, song)) # Não esquecer da ordem [0]INDEX [1]SONG
 
         for indx, each_song in self.listbox_list:
             self.music_listbox.insert(tk.END, f"   {each_song.display_name}")
 
-            true_indx = indx - 1
+       
 
-            if true_indx % 2 == 0:
-                self.music_listbox.itemconfig(true_indx, bg = "#111111")
+            if indx % 2 == 0:
+                self.music_listbox.itemconfig(indx, bg = "#111111")
             else:
-                self.music_listbox.itemconfig(true_indx, bg = "#1B1B1B")
+                self.music_listbox.itemconfig(indx, bg = "#1B1B1B")
 
     
 
