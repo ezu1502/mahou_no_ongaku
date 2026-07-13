@@ -30,6 +30,7 @@ class SongLibrary:
             if file_path.is_file() and file_path.suffix.lower() in supported_formats:
                 song = Song(path = file_path)
                 self.song_list.append(song)
+                
         log.debug("song list created")
 
 

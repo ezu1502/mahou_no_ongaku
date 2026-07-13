@@ -28,7 +28,7 @@ class MainScreen(tk.Frame):
         self.music_listbox = self.make_mahou_listbox(self)
         self.music_listbox.pack(padx = 20, pady = (0, 20), side = "left", fill = "both")
         self.music_listbox.bind("<<ListboxSelect>>", self.get_selection_from_listbox)
-
+        self.listbox_list = []
     
         self.scrollbar = self.make_mahou_scrollbar(self)
         self.scrollbar.pack(side = "right", fill = "y")
@@ -119,11 +119,9 @@ class MainScreen(tk.Frame):
         match state:
             case PS.PLAYING:
                 self.play_button.config(text = "PAUSE")
-            case PS.PAUSED:
+            case PS.PAUSED | PS.IN_MENU:
                 self.play_button.config(text = "▶ PLAY")
-            case PS.IN_MENU:
-                self.play_button.config(text = "▶ PLAY")
-        
+
         log.debug("UI updated by state")    
 
         
@@ -200,8 +198,12 @@ class MainScreen(tk.Frame):
 
     def set_listbox_musiclist(self, list_to_add: list[Song]):
         self.music_listbox.delete(0, tk.END)
+        
         for indx, song in enumerate(list_to_add, start = 1):
-            self.music_listbox.insert(tk.END, f"   {song.display_name}")
+            self.listbox_list.append((indx, song)) # Não esquecer da ordem [0]INDEX [1]SONG
+
+        for indx, each_song in self.listbox_list:
+            self.music_listbox.insert(tk.END, f"   {each_song.display_name}")
 
             true_indx = indx - 1
 
@@ -209,6 +211,8 @@ class MainScreen(tk.Frame):
                 self.music_listbox.itemconfig(true_indx, bg = "#111111")
             else:
                 self.music_listbox.itemconfig(true_indx, bg = "#1B1B1B")
+
+    
 
     
 

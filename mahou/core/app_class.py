@@ -12,8 +12,10 @@ class App:
         self.state = PS.IN_MENU #DEFAULT STATE SET
 
         log.debug("App born")
-        self.mahou_player = MahouPlayer()
+        
+        self.mahou_player = MahouPlayer(app = self)
         self.mahou_window = MahouWindow(self.mahou_player, dimensions = "900x600", app = self)
+
         log.debug("player and window created")
 
     def run(self):

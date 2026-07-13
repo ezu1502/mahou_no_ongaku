@@ -10,29 +10,21 @@ from pathlib import Path
 log = logging.getLogger(painted_string("mahou_player", COLORS.PURPLE))
 
 class MahouPlayer:
-    def __init__(self):
+    def __init__(self, app):
         pygame.mixer.init()
         log.debug("MahouPlayer initialized")
 
-        self.window_set_state = None
-        self.window_get_state = None
+        self.app = app
 
         self.loaded_song_path: Path | None = None
 
 # ----------------- WINDOW STATE MANAGER
 
     def get_state(self) -> PS | None:
-        if self.window_get_state is not None:
-            return self.window_get_state()
-        else:
-            log.warning("Erro no callback da função get_state (Window)")
-            return None
+        return self.app.state
             
     def set_state(self, state: PS) -> None:
-        if self.window_set_state is not None:
-            self.window_set_state(state)
-        else:
-            log.warning("Erro no callback da função set_state (Window)")
+        self.app.set_state(state)
 
 
 # ------------------ MUSIC CONTROLS
@@ -53,9 +45,10 @@ class MahouPlayer:
 
             if self.loaded_song_path is not None:
                 song_name = self.loaded_song_path.stem
+                log.info(painted_string(f"Now Playing: {song_name}", COLORS.PURPLE))
             else:
                 log.warning("Loaded song path is None!")
-            log.info(painted_string(f"Now Playing: {song_name}", COLORS.PURPLE))
+            
         else:
                 log.warning("Already playing!")
 
