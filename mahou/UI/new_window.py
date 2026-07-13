@@ -8,7 +8,6 @@ from mahou.core.song_library import SongLibrary
 from mahou.core.song import Song
 from mahou.UI.main_screen import MainScreen
 from dataclasses import dataclass
-from functools import wraps
 
 log = logging.getLogger(painted_string("mahou_window", "#7AF9FD"))
 
@@ -137,12 +136,12 @@ class MahouWindow:
 
         self.selected_song.reset()
 
-        self.mahou_player.load_song(self.playing_song.path)
+        self.mahou_player.load_song(self.playing_song.song_object)
         self.mahou_player.play_song()
 
         self.main_screen.highlight_playing_song(index)
         self.main_screen.show_playing_label(self.playing_song.title)
-        self.main_screen.show_duration(self.playing_song.song_object.analysis.base60_duration_str)  # type: ignore
+        self.main_screen.show_duration(self.playing_song.song_object.base60_duration)  # type: ignore
 
 
     def play_without_load(self):
@@ -179,6 +178,7 @@ class MahouWindow:
         self.mahou_player.unpause_song()
 
     def toggle(self):
+        log.debug("toggle function triggered")
         match self.app.state:
             case PS.IN_MENU:
                 if self.selected_song.index is not None:

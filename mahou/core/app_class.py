@@ -25,5 +25,4 @@ class App:
         self.state = state
         if state != PS.SHUT_DOWN:
             log.debug(f"app state defined to {state}")
-        
-        
+    

@@ -1,9 +1,8 @@
 from pathlib import Path
 import json
+from dataclasses import dataclass
 
 cache_file = Path("cache/song_analysis.json")
-
-
 
 def save_song_cache(cache_file: Path, analysis_dictionary: dict) -> None:
     cache_file.parent.mkdir(parents = True, exist_ok = True)
@@ -22,4 +21,10 @@ def load_song_cache(cache_file: Path) -> None | dict:
             return json.load(cache)
     except json.JSONDecodeError:
         return None
-    
+
+@dataclass
+class CacheDoppelganger:
+    duration: int | float #talvez tirar float
+
+    #vou manter só esse por enquanto mas vai aumentar
+

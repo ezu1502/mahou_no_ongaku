@@ -6,7 +6,7 @@ from mahou_libs.colors import COLORS, painted_string
 from typing import Callable
 from functools import wraps
 from pathlib import Path
-
+from mahou.core.song import Song
 log = logging.getLogger(painted_string("mahou_player", COLORS.PURPLE))
 
 class MahouPlayer:
@@ -15,8 +15,7 @@ class MahouPlayer:
         log.debug("MahouPlayer initialized")
 
         self.app = app
-
-        self.loaded_song_path: Path | None = None
+        self.loaded_song: Song | None = None
 
 # ----------------- WINDOW STATE MANAGER
 
@@ -28,11 +27,20 @@ class MahouPlayer:
 
 
 # ------------------ MUSIC CONTROLS
-    def load_song(self, song_path):
-        Pymusic.load(song_path)
-        if song_path is not None:
-            self.loaded_song_path = Path(song_path)
-            log.debug(f"loaded {self.loaded_song_path.stem} into MahouPlayer")
+    def load_song(self, song: Song):
+        self.loaded_song = song
+
+        if not isinstance(song, Song):
+            raise ValueError(f"Argument {song} is not a Song object!")
+        
+
+        if not song.has_cache:
+            song.save_analyzer_data_cache()
+        path = song.path
+        Pymusic.load(path)
+        log.debug(f"loaded {path} into MahouPlayer")
+         
+
 
 
     def play_song(self):
@@ -40,15 +48,9 @@ class MahouPlayer:
 
         if current_state != PS.PLAYING:    
             Pymusic.play()
-
             self.set_state(PS.PLAYING)
-
-            if self.loaded_song_path is not None:
-                song_name = self.loaded_song_path.stem
-                log.info(painted_string(f"Now Playing: {song_name}", COLORS.PURPLE))
-            else:
-                log.warning("Loaded song path is None!")
-            
+            song_name = self.loaded_song.title if self.loaded_song is not None else None
+            log.info(painted_string(f"Now Playing: {song_name}", COLORS.PURPLE))
         else:
                 log.warning("Already playing!")
 
