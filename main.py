@@ -19,10 +19,14 @@ FRAME_TIME = 1/FPS
 log.debug(painted_string("Program Started              ", COLORS.RED))
 
 log.debug("Main app launched")
-if __name__ == "__main__":
-    mahou_app = App()
-    mahou_app.run()
 
-    log.info("Program terminated")
-    print()
+try:
+    if __name__ == "__main__":
+        mahou_app = App()
+        mahou_app.run()
+
+        log.info("Program terminated")
+        print()
+finally:
+    log.info("Program Terminated.")
 
