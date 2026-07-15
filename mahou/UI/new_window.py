@@ -216,8 +216,15 @@ class MahouWindow:
 
         if index is None:
             return
-        
+
+        length = len(self.library.song_list)
+
         new_index = index + change
+
+        if new_index < 0:
+            new_index = length - 1
+        elif new_index > (length - 1):
+            new_index = 0
 
         match self.app.state:
             case PS.PLAYING:
@@ -227,24 +234,7 @@ class MahouWindow:
                 self.stop_song()
                 self.load_song_index(new_index)
 
-    @log_delta_time
-    def change__song(self, change):
-        self.selected_song.index
-        if self.selected_song.index is None or change == 0:
-            return
-        
-        log.trace("'Previous' button pressed")
-
-        folder_length: int = len(self.library.song_list)
-        
-        self.selected_song.index += change
-
-        match self.app.state:
-            case PS.PLAYING:
-                self.stop_song()
-                self.play_song_by_index(self.selected_song.index) #type: ignore
-            case PS.PAUSED:
-                self.stop_song()
+    
 
 
     @log_delta_time
