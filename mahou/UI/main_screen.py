@@ -49,10 +49,10 @@ class MainScreen(tk.Frame):
         self.restart_song_button = self.make_mahou_button(self, "Restart song", command = sith_lord.restart_song)
         self.restart_song_button.pack(pady = (10,0), padx = 10)
         
-        self.previous_song_button = self.make_mahou_button(self, "Previous", command = sith_lord.goto_previous_song)
+        self.previous_song_button = self.make_mahou_button(self, "Previous", command = lambda: sith_lord.change_song(-1))
         self.previous_song_button.pack(pady = (10,0), padx = 10)
 
-        self.next_song_button = self.make_mahou_button(self, "Next", command = sith_lord.goto_next_song)
+        self.next_song_button = self.make_mahou_button(self, "Next", command = lambda: sith_lord.change_song(1))
         self.next_song_button.pack(pady = (10, 1), padx = 10)
 
         #endregion
@@ -205,8 +205,6 @@ class MainScreen(tk.Frame):
 
         for indx, each_song in self.listbox_list:
             self.music_listbox.insert(tk.END, f"   {each_song.display_name}")
-
-       
 
             if indx % 2 == 0:
                 self.music_listbox.itemconfig(indx, bg = "#111111")

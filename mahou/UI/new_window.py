@@ -129,8 +129,6 @@ class MahouWindow:
 #region ------------------ #01 PLAYER CONTROLS
     @log_delta_time
     def play_song_by_index(self, index: int):
-        
-
         listbox_list = self.main_screen.listbox_list
         
         self.playing_song.tuple_set(listbox_list[index])
@@ -145,7 +143,7 @@ class MahouWindow:
         self.main_screen.update_UI_by_state(self.get_state())
         self.selected_song.reset()
 
-        self.reset_listbox_ui()
+        # self.reset_listbox_ui()
         
 
         self.main_screen.highlight_playing_song(index)
@@ -175,15 +173,13 @@ class MahouWindow:
             pass
         self.reset_listbox_ui()
 
-    @log_delta_time
     def reset_listbox_ui(self):
         self.main_screen.set_listbox_musiclist(self.library.song_list)
         
-    @log_delta_time
+    
     def load_song_index(self, index) -> None:
-        path_to_load: Path = self.library.song_list[index].path
-        self.mahou_player.load_song(path_to_load)
-        self.playing_song_index = index
+        song_to_load = self.library.song_list[index]
+        self.mahou_player.load_song(song_to_load)
 
     def unpause_song(self) -> None:
         self.mahou_player.unpause_song()
@@ -209,63 +205,44 @@ class MahouWindow:
             self.play_song_by_index(self.selected_song.index)
 
 
-    def goto_previous_song(self):
-        if self.selected_song.index is None:
+    @log_delta_time
+    def change_song(self, change: int):
+        if change == 0:
+            return
+        if self.app.state == PS.IN_MENU:
+            return
+        
+        index = self.playing_song.index
+
+        if index is None:
+            return
+        
+        new_index = index + change
+
+        match self.app.state:
+            case PS.PLAYING:
+                self.stop_song()
+                self.play_song_by_index(new_index) #type: ignore
+            case PS.PAUSED:
+                self.stop_song()
+                self.load_song_index(new_index)
+
+    @log_delta_time
+    def change__song(self, change):
+        self.selected_song.index
+        if self.selected_song.index is None or change == 0:
             return
         
         log.trace("'Previous' button pressed")
 
         folder_length: int = len(self.library.song_list)
-
-        print(self.selected_song.index)
-        if self.selected_song.index <= 0:
-            self.selected_song.index = (folder_length - 1)
-        else:
-            self.selected_song.index -= 1
+        
+        self.selected_song.index += change
 
         match self.app.state:
             case PS.PLAYING:
                 self.stop_song()
-                self.play_song_by_index(self.selected_song.index)
-            case PS.PAUSED:
-                self.stop_song()
-
-# TODO finalizar !!!!!!!
-
-    def goto_next_song(self):
-        if self.selected_song.index is None:
-            return
-        log.trace("'Previous' button pressed")
-
-        folder_length: int = len(self.library.song_list)
-        if self.selected_song.index >= (folder_length - 1):
-            self.selected_song.index = 0
-        else:
-            self.selected_song.index += 1
-
-        match self.app.state:
-            case PS.PLAYING:
-                self.stop_song()
-                self.play_song_by_index(self.selected_song.index)
-            case PS.PAUSED:
-                self.stop_song()
-
-
-    def change_song(self):
-        if self.selected_song.index is None:
-            return
-        log.trace("'Previous' button pressed")
-
-        folder_length: int = len(self.library.song_list)
-        if self.selected_song.index >= (folder_length - 1):
-            self.selected_song.index = 0
-        else:
-            self.selected_song.index += 1
-
-        match self.app.state:
-            case PS.PLAYING:
-                self.stop_song()
-                self.play_song_by_index(self.selected_song.index)
+                self.play_song_by_index(self.selected_song.index) #type: ignore
             case PS.PAUSED:
                 self.stop_song()
 
@@ -349,10 +326,10 @@ class MahouWindow:
             case "space":
                 self.toggle()
             case "right":
-                self.goto_next_song()
+                self.change_song(1)
                 return "break"
             case "left":
-                self.goto_previous_song()
+                self.change_song(-1)
                 return "break"
             case "r":
                 self.restart_song()
