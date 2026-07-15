@@ -20,7 +20,7 @@ class MainScreen(tk.Frame):
         self.sith_lord = sith_lord
         #region WIDGETS
 
-        self.get_selection_from_listbox = sith_lord.get_selection_from_listbox
+        self.get_selection_from_listbox = sith_lord.get_listbox_selection_index
 
         self.title = self.make_mahou_label(self, "Mahou no Ongaku", font = ("Trebuchet MS", 30, "bold"))
         self.title.pack(pady = 20)
@@ -28,6 +28,9 @@ class MainScreen(tk.Frame):
         self.music_listbox = self.make_mahou_listbox(self)
         self.music_listbox.pack(padx = 20, pady = (0, 20), side = "left", fill = "both")
         self.music_listbox.bind("<<ListboxSelect>>", self.get_selection_from_listbox)
+        self.music_listbox.bind("<Up>", lambda select_up: self.change_selection(-1, select_up))
+        self.music_listbox.bind("<Down>", lambda select_down: self.change_selection(1))
+
         self.listbox_list = []
     
         self.scrollbar = self.make_mahou_scrollbar(self)
@@ -61,6 +64,8 @@ class MainScreen(tk.Frame):
             command = self.play_selected_song_button
             )
         
+        self.duration_label = None
+
         self.playing_label = None
 
         #endregion
@@ -85,22 +90,24 @@ class MainScreen(tk.Frame):
             self.playing_label.pack()
             return
         
+
         self.playing_label.config(text = f"Now Playing: {songname}", font = ("Bahnschrift", 16))
+        self.playing_label.pack()
 
         
-
-    
-
-    def show_duration(self, duration: str):
-
-        if not self.duration_label_exists:
+    def set_duration_label(self, duration: str = "null", visible = True):
+        if not visible and self.duration_label is not None:
+            self.duration_label.pack_forget()
+            return
+        
+        if self.duration_label is None:
             self.duration_label = self.make_mahou_label(self, wanted_text = duration, font = ("Trebuchet MS", 15, "bold"))
             self.duration_label.pack()
 
             log.trace("duration label created and shown")
-            self.duration_label_exists = True
         else:
             self.duration_label.config(text = duration)
+            self.duration_label.pack()
             log.trace("duration label changed")
 
     
@@ -118,6 +125,16 @@ class MainScreen(tk.Frame):
     def listbox_select(self, index):
         self.music_listbox.select_clear(0, tk.END)
         self.music_listbox.select_set(index)
+
+    def change_selection(self, change, event = None):
+        if change == 0:
+            return
+        index = self.get_selection_from_listbox()
+        print(self.get_selection_from_listbox())
+        self.listbox_select(index + change)
+        self.sith_lord.select(self.listbox_list[index + change][0], index + change)
+        return "break"
+        
 
     def highlight_playing_song(self, index):
         self.music_listbox.delete(index)

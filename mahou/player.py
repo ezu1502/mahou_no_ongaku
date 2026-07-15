@@ -64,7 +64,7 @@ class MahouPlayer:
             song_name = self.loaded_song.title if self.loaded_song is not None else None
             log.info(painted_string(f"Now Playing: {song_name}", COLORS.PURPLE))
         else:
-                log.warning("Already playing!")
+            log.warning("Already playing!")
 
     def pause_song(self):
         current_state = self.get_state()

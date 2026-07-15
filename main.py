@@ -1,4 +1,4 @@
-import os; os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"; os.environ["BOCCA_HIDE_GREETING"] = "0"
+import os; os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"; os.environ["BOCCA_HIDE_GREETING"] = "1"
 from mahou_libs.colors import painted_string
 from mahou import App
 from mahou_libs import bocca
@@ -25,6 +25,5 @@ try:
         mahou_app = App()
         mahou_app.run()
 finally:
-    print()
     log.info(end_message)
 

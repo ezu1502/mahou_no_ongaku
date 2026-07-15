@@ -77,6 +77,10 @@ class MahouWindow:
         selected = self.selected_song.attributes
         return play == selected if selected is not None else False
 
+    def set_state(self, state):
+        self.app.set_state(state)
+        self.main_screen.update_UI_by_state(state)
+
     def get_state(self) -> PS:
         return self.app.state
 #region ------------------ #00 WINDOW DEFINING
@@ -111,6 +115,7 @@ class MahouWindow:
         self.root.protocol("WM_DELETE_WINDOW", self.x_button_was_pressed)
 
         log.trace("Window created")
+        
 
     def start_ui_loop(self):
         self.update_dynamic_UI()
@@ -144,8 +149,10 @@ class MahouWindow:
         self.selected_song.reset()
 
         self.main_screen.highlight_playing_song(index)
-        self.main_screen.set_playing_label(self.playing_song.title)
-        self.main_screen.show_duration(song_obj.base60_duration)  # type: ignore
+        self.main_screen.set_playing_label(self.playing_song.title) # type: ignore
+        self.main_screen.set_duration_label(song_obj.base60_duration)  # type: ignore
+
+        print(self.main_screen.get_selection_from_listbox)
 
     def play_without_load(self):
         self.mahou_player.play_without_load()
@@ -156,18 +163,13 @@ class MahouWindow:
 
     def stop_song(self, hide_duration = True, hide_playing_label = True) -> None:
         self.mahou_player.stop_song()
-        # TODO mexer aqui ainda
-        
         if hide_playing_label:
             self.main_screen.set_playing_label(visible = False)
         if hide_duration:
-            self.main_screen.duration_label.destroy()
-            self.main_screen.duration_label_exists = False
-        # ! CONTINUAR AQUI!!!!!
-        self.reset_listbox_ui()
+            self.main_screen.set_duration_label(visible = False)
 
-    def reset_listbox_ui(self):
-        self.main_screen.set_listbox_musiclist(self.library.song_list)
+        self.set_state(PS.IN_MENU)
+
         
     
     def load_song_index(self, index) -> None:
@@ -179,7 +181,7 @@ class MahouWindow:
 
     def toggle(self):
         log.trace("toggle function triggered")
-        match self.app.state:
+        match self.get_state():
             case PS.IN_MENU:
                 if self.selected_song.index is not None:
                     self.play_song_by_index(self.selected_song.index)
@@ -243,7 +245,7 @@ class MahouWindow:
             log.debug("Restarted song successfully")
 
         elif self.app.state == PS.PAUSED:
-            self.stop_song(destroy_duration = False, destroy_playing_label = False)
+            self.stop_song(hide_duration = False, hide_playing_label = False)
             self.load_song_index(self.playing_song.index)
             self.main_screen.highlight_playing_song(self.playing_song.index)
             log.debug("Restarted song successfully in pause mode")
@@ -280,14 +282,11 @@ class MahouWindow:
     
 # melhor deixar isso aqui embaixo na window mesmo kkkkkkkkk
 
-    def get_selection_from_listbox(self, event):
-        listbox = self.main_screen.music_listbox
-        selection = listbox.curselection()
-        if not selection:
-            return
-                    
-        selected_listbox_index = selection[0]
-        selected_listbox_song_tuple = self.main_screen.listbox_list[selected_listbox_index]
+    def set_selected_song_by_listbox(self, index, event = None):
+        if index is None:
+            return None
+        
+        selected_listbox_song_tuple = self.main_screen.listbox_list[index]
 
         self.selected_song.tuple_set(selected_listbox_song_tuple)
 
@@ -295,12 +294,22 @@ class MahouWindow:
             case PS.PLAYING | PS.PAUSED:
                 self.main_screen.set_selectedb_visibility(visible = True)
 
+    def get_listbox_selection_index(self, event = None):
+        listbox = self.main_screen.music_listbox
+        selection = listbox.curselection()
+        if selection:
+            selected_listbox_index = selection[0]
+        else:
+            selection = self.playing_song.index
+            return selection
+                    
+        self.set_selected_song_by_listbox(selected_listbox_index)
 
+        return selected_listbox_index
 #endregion
 
 #region ------------------ #04 KEYBOARD
  
-
     def on_key_pressed(self, event):
         raw_command = event.keysym
         command = raw_command.lower()
@@ -314,10 +323,16 @@ class MahouWindow:
             case "left":
                 self.change_song(-1)
                 return "break"
+            case "up":
+                ...
+            case "down":
+                ...
             case "r":
                 self.restart_song()
             case "s" | "escape":
                 self.stop_song()
+            case "return":
+                self.play_selected_song_button()
 
     def silence_listbox_stupid_keys(self):
         lb = self.main_screen.music_listbox
@@ -326,11 +341,15 @@ class MahouWindow:
         self.root.bind_class("Listbox", "<Left>", lambda e: (self.on_key_pressed, "break"))
         self.root.bind_class("Listbox", "<space>", lambda e: (self.on_key_pressed, "break"))
 
+
         tags = list(lb.bindtags())
         if "Listbox" in tags:
             tags.remove("Listbox")
            
 
+    def select(self, song: Song, index: int):
+        self.selected_song.tuple_set((index, song))
+        self.main_screen.set_selectedb_visibility(visible = True)
 
 
 
