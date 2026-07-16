@@ -125,6 +125,7 @@ class MainScreen(tk.Frame):
     def listbox_select(self, index):
         self.music_listbox.select_clear(0, tk.END)
         self.music_listbox.select_set(index)
+        self.music_listbox.see(index)
 
     def change_selection(self, change, event = None):
         if change == 0:
@@ -140,6 +141,15 @@ class MainScreen(tk.Frame):
         self.music_listbox.delete(index)
         self.music_listbox.insert(index, f"▶ {self.sith_lord.library.song_list[index].display_name}")
         self.music_listbox.itemconfig(index, fg = "#FFFF00", bg = "#333333")
+    
+    def undo_highlight(self, index):
+        self.music_listbox.delete(index)
+        self.music_listbox.insert(index, f"   {self.sith_lord.library.song_list[index].display_name}")
+        if index % 2 == 0:
+            self.music_listbox.itemconfig(index, fg = "#FFFFFF", bg = "#222222")
+        else:
+            self.music_listbox.itemconfig(index, fg = "#FFFFFF", bg = "#111111")
+
         
     def update_UI_by_state(self, state):
         match state:

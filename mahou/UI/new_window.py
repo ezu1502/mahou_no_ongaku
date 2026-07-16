@@ -136,7 +136,12 @@ class MahouWindow:
     def play_song_by_index(self, index: int):
         listbox_list = self.main_screen.listbox_list
         
+        if self.playing_song.index is not None:
+            self.main_screen.undo_highlight(self.playing_song.index)
+
+
         self.playing_song.tuple_set(listbox_list[index])
+        
 
         song_obj = self.playing_song.song_object
         if song_obj is None:
@@ -146,7 +151,9 @@ class MahouWindow:
         self.mahou_player.play_song()
 
         self.main_screen.update_UI_by_state(self.get_state())
+        
         self.selected_song.reset()
+
 
         self.main_screen.highlight_playing_song(index)
         self.main_screen.set_playing_label(self.playing_song.title) # type: ignore
@@ -216,10 +223,19 @@ class MahouWindow:
 
         new_index = index + change
 
+        
+
         if new_index < 0:
             new_index = length - 1
+            
+            
         elif new_index > (length - 1):
             new_index = 0
+     
+
+        percent = new_index / length
+        self.main_screen.music_listbox.yview_moveto(percent)
+
 
         match self.app.state:
             case PS.PLAYING:
