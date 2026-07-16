@@ -16,7 +16,6 @@ class SongLibrary:
         if default_folder is not None:
             self.set_folder(default_folder)
 
-
     @property
     def default_folder(self):
         default_folder_cache_file = Path ("mahou_cache") / ("app_cache") / "folder_settings.json"
@@ -33,7 +32,6 @@ class SongLibrary:
                 return None
         return None
             
-
     def save_folder(self, folder):
         default_folder_cache_file = Path ("mahou_cache") / ("app_cache") / "folder_settings.json"
         dictionary = {"default_folder": str(folder)}
@@ -60,7 +58,7 @@ class SongLibrary:
                 song = Song(path = file_path)
                 self.song_list.append(song)
                 
-        log.trace("song list created")
+        log.debug("song list created")
 
 # ! cuidado pra n fazer merda kkkkkkkkkkkkk
 

@@ -6,11 +6,9 @@ from mahou.core.cache_tools import CacheDoppelganger
 from functools import wraps
 from mahou_libs import mahou_math
 from send2trash import send2trash
-from mahou_libs import painted_string
-import threading
+from mahou_libs.colors import painted_string
 from mahou_libs.bocca import BoccaFiglia
 
-#Cada música vai ser uma class agora
 log = BoccaFiglia("Song_Class", "#00FF00")
 
 @dataclass

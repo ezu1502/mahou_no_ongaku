@@ -3,7 +3,6 @@ from PySide6.QtGui import QFont
 from mahou_libs.time_functions import log_delta_time
 
 class MahouInterface(QMainWindow):
-    @log_delta_time
     def __init__(self):
         super().__init__()
 
