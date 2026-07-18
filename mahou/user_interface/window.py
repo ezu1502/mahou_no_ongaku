@@ -1,21 +1,23 @@
 from PySide6.QtWidgets import (QMainWindow, QWidget, QHBoxLayout, QVBoxLayout, QLabel, QPushButton, QListWidget,
-QListWidgetItem, QGridLayout)
+QListWidgetItem, QGridLayout, QFileDialog)
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QBrush, QColor
 from mahou_libs.time_functions import log_delta_time
 from pathlib import Path
 from mahou.core.song import Song
 from mahou.core.ENUMS import PS
+from mahou.user_interface.player_bridge import PlayerBridge
 
 align = Qt.AlignmentFlag
 
 class MahouInterface(QMainWindow):
+    @log_delta_time
     def __init__(self, player, app):
         super().__init__()
         
-        
         self.player = player
         self.app = app
+        self.player_bridge = PlayerBridge(window = self)
 
         self.playing_item = None
         
@@ -34,21 +36,28 @@ class MahouInterface(QMainWindow):
 
         self.set_interface_aspect()
 
-        
+    @log_delta_time
     def set_interface_aspect(self):
+        # * TÍTULO -------
         self.title = QLabel("Mahou no Ongaku")
         self.title.setObjectName("title")
         self.main_layout.addWidget(self.title, 2, alignment = align.AlignHCenter)
 
+        # * PÁGINA DO MEIO/ 
         self.middle_layout = QHBoxLayout()
         self.main_layout.addLayout(self.middle_layout, 14)
+        
+        # * LISTBOX ---
 
         self.listbox = QListWidget()
         self.listbox.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.listbox.setAlternatingRowColors(True)
+        self.listbox.setUniformItemSizes(True)
 
         self.middle_layout.addWidget(self.listbox, 9)
     
+        # * RIGHT PANEL/
+        
         self.right_panel_widget = QWidget()
         
         self.right_panel = QVBoxLayout()
@@ -58,39 +67,58 @@ class MahouInterface(QMainWindow):
 
         self.middle_layout.addWidget(self.right_panel_widget, 8)
 
+        # * PLAY AND PAUSE BUTTON ---
+
         self.play_pause_button = QPushButton("PLAY")
         self.play_pause_button.setFixedSize(300, 60)
-        self.play_pause_button.pressed.connect(self.toggle)
+        self.play_pause_button.pressed.connect(self.player_bridge.toggle)
 
         self.right_panel.addWidget(self.play_pause_button, alignment = align.AlignHCenter)
 
+        # * FOLDER BUTTON ---
         self.folder_button = QPushButton("Choose Folder")
         self.folder_button.setFixedSize(300, 60)
+        self.folder_button.pressed.connect(self.choose_folder)
         
         self.right_panel.addWidget(self.folder_button, alignment = align.AlignHCenter)
 
+        # * RESTART SONG BUTTON --
+        
+        self.restart_button = QPushButton("Restart Song")
+        self.folder_button.setFixedSize(300, 60)
+        self.folder_button.pressed.connect(self.player_bridge.restart_song)
+
+        # * -------
+
         self.set_listbox_list(self.song_list)
 
+        # * ------------------------------
+
+
+
+            
+
+
+
+#region LIST REGION
 
     @property
     def apps_music_list(self):
         return self.app.library.song_list
 
+    @log_delta_time
     def set_listbox_list(self, list_to_add: list[Song]):
         if list_to_add is None:
             return
         
+        self.listbox.clear()
+
         for item in list_to_add:
             song_item = QListWidgetItem(item.title)
             song_item.setData(Qt.ItemDataRole.UserRole, item)
             self.listbox.addItem(song_item)
 
-    def load_stylesheet_string(self, style_path: Path | str):
-        if isinstance(style_path, str):
-            style_path = Path(style_path)
-
-        return style_path.read_text(encoding = "utf-8")
-    
+   
     @property
     def song_list(self):
         return self.app.library.song_list
@@ -100,18 +128,16 @@ class MahouInterface(QMainWindow):
         item = self.listbox.currentItem()
         return item
     
+    def choose_folder(self):
+        folder = Path(QFileDialog.getExistingDirectory(self, "Choose a folder"))
+        self.app.set_library_folder(folder)
+        new_list = self.app.get_library_song_list
 
+        self.set_listbox_list(new_list)
+        
     
-    def toggle(self):
-        match self.get_state():
-            case PS.PLAYING:
-                self.player.pause_song()
-            case PS.PAUSED:
-                self.player.unpause_song()
-            case PS.IN_MENU:
-                self.load_and_play()
-        self.update_UI_by_state()
-
+#endregion
+#region UI Update
     def update_UI_by_state(self):
 
         match self.get_state():
@@ -120,35 +146,17 @@ class MahouInterface(QMainWindow):
             case PS.PLAYING:
                 self.play_pause_button.setText("PAUSE")
 
-
-    def load_and_play(self):
-        item = self.listbox_selection
-        if item is None:
-            return
-        
-        self.update_listbox_UI(new_item = item)
-
-        self.playing_item = item
-
-        song = item.data(Qt.ItemDataRole.UserRole)
-  
-        if song is None:
-            return
-    
-        self.player.load_song(song)
-        self.player.play_song()
-        
-
     def update_listbox_UI(self, new_item):
+        
         if self.playing_item is not None:
             self.playing_item.setForeground(QBrush())
             song_name = self.playing_item.data(Qt.ItemDataRole.UserRole).title
             self.playing_item.setText(song_name)
 
-        text = new_item.text()
-        new_item.setText(f"▶ {text}")
+        # text = new_item.text()
+        # new_item.setText(f"▶ {text}")
         new_item.setForeground(QColor("#FFFF00"))
-        self.listbox.clearSelection()
+        new_item.setSelected(False)
 
     def get_state(self):
         return self.app.state
@@ -156,5 +164,18 @@ class MahouInterface(QMainWindow):
     def set_state(self, state: PS):
         self.app.state = state
         self.update_UI_by_state()
+
+    
+    #endregion
+
+    #region STYLESHEET
+
+    def load_stylesheet_string(self, style_path: Path | str):
+        if isinstance(style_path, str):
+            style_path = Path(style_path)
+
+        return style_path.read_text(encoding = "utf-8")
+    
+    #endregion
 
     

@@ -15,7 +15,9 @@ class Song:
     
     @property
     def title(self):
-        return self.path.stem
+        name = self.path.stem
+        name = name.replace("\ufeff", "")
+        return name
 
         
 

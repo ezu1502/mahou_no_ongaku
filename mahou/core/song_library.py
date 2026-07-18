@@ -13,7 +13,7 @@ class SongLibrary:
         self.song_list: list[Song] = []
 
         default_folder = self.default_folder
-        if default_folder is not None:
+        if default_folder is not None and default_folder is not ".":
             self.set_folder(default_folder)
 
     @property
@@ -32,6 +32,9 @@ class SongLibrary:
                 return None
         return None
             
+
+
+
     def save_folder(self, folder):
         default_folder_cache_file = Path ("mahou_cache") / ("app_cache") / "folder_settings.json"
         dictionary = {"default_folder": str(folder)}
@@ -46,7 +49,9 @@ class SongLibrary:
             return None
         
         self.folder = folder
+        self.set_song_list(folder)
         self.save_folder(folder)
+        
 
     def set_song_list(self, folder: Path):
         self.song_list.clear()
@@ -57,7 +62,9 @@ class SongLibrary:
             if file_path.is_file() and file_path.suffix.lower() in supported_formats:
                 song = Song(path = file_path)
                 self.song_list.append(song)
+    
+        self.song_list.sort(key = lambda song: song.title)
                 
-        log.debug("song list created")
+        log.debug("song list set")
 
 

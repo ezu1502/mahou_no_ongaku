@@ -10,6 +10,11 @@ class MahouPlayer:
         self.loaded_song = None
 
     def load_song(self, song: Song):
+        self.loaded_song = song
+
+        if self.loaded_song is None:
+            return 
+        
         song_path = song.path
         
         if song_path is None:
@@ -28,5 +33,8 @@ class MahouPlayer:
     def unpause_song(self):
         pymusic.unpause()
         self.app.set_state(PS.PLAYING)
+
     def stop_song(self):
-        ...
+        pymusic.stop()
+        self.loaded_song = None
+        self.app.set_state(PS.IN_MENU)
