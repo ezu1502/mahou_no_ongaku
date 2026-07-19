@@ -1,0 +1,154 @@
+
+QMainWindow {
+    background-color: qlineargradient(
+        x1:0, y1:0,
+        x2:0, y2:1,
+
+        stop:0 #141414,
+        stop:1 #0a0a0a
+    )
+}
+QLabel {
+    color: #EEEEEE;
+    font-family: "Bahnschrift";
+    font-size: 20px;
+}
+
+QLabel#title {
+    color: #EEEEEE;
+    font-family: "Bahnschrift";
+    font-size: 41px;
+}
+
+
+QPushButton {
+    background-color: #090909;
+    color: #EEEEEE;
+
+    border-top: 1px solid #4A4A4A;
+    border-left: 1px solid #404040;
+    border-bottom: 1px solid #000000;
+    border-right: 1px solid #000000;
+
+
+    border-radius: 3;
+    font-family: "Bahnschrift";
+    font-size: 24px;
+    outline: none;
+}
+/* 
+QPushButton#play_button {
+    border-top: 1px solid #744b8d;
+    border-left: 1px solid #5c2c7c;
+    border-bottom: 1px solid rgb(48, 27, 63);
+    border-right: 1px solid #412952;
+} */
+
+
+
+QPushButton:hover {
+    background-color: #111111;
+}
+QPushButton#play_button {
+    font-size: 26px;
+}
+
+QPushButton#play_button:hover {
+    color: #a41cff;
+    background-color: #0c0c0c;
+    border-top: 1px solid #734a79;
+    border-left: 1px solid #3d2d3f;
+}
+QPushButton#play_button:pressed {
+    color: #a41cff;
+    background-color: #0d0d0e;
+    border: 1px solid #a41cff;
+}
+QPushButton:pressed {
+    background-color: #333333;
+    border-top: 1px solid #000000;
+    border-left: 1px solid #000000;
+    border-bottom: 1px solid #4A4A4A;
+    border-right: 1px solid #404040;
+}
+
+QPushButton:disabled {
+    background-color: #191919;
+    color: #353535;
+}
+
+
+
+QListWidget {
+    background-color: #141414;
+    color: #EEEEEE;
+    font-family: "Bahnschrift";
+    font-size: 16px;
+
+    outline: none;
+
+    border: 2px solid #404040;
+    border-radius: 2px;
+    show-decoration-selected: 1;
+
+
+    alternate-background-color: qlineargradient(
+        x1:0, y1:0,
+        x2:1, y2:0,
+
+        stop:0 #202020,
+        stop:1 #171717
+    );
+    
+}
+
+QListWidget::item {
+    padding: 8px;
+    font-weight: bold;
+}   
+QListWidget::item:hover {
+    background: #2a2a2a;
+    border: none
+}   
+QListWidget::item:selected {
+    background-color: qlineargradient(
+        x1:0, y1:0,
+        x2:0, y2:1,
+
+        stop:0 #3B3B3B,
+        stop:1 #555555
+    );
+    border: none;
+}   
+QListWidget::item:selected:!active {
+    color: #EEEEEE;
+}   
+QListWidget::item:selected:!active {
+    
+}   
+
+QScrollBar:vertical {
+    background: #101010;
+    width: 12px;
+    margin: 0px;
+}
+
+QScrollBar::handle:vertical{
+    background: #404040;
+    border-radius: 3px;
+    min-height: 50px;
+}
+
+QScrollBar::handle:vertical:hover{
+    background: #555555;
+}
+QScrollBar::handle:vertical:pressed{
+    background: #9900ff;
+}
+
+QScrollBar::add-page:vertical {
+    background: #222222
+}
+QScrollBar::sub-page:vertical {
+    background: #222222
+}

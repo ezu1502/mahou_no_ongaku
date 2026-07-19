@@ -13,9 +13,8 @@ class SongLibrary:
         self.song_list: list[Song] = []
 
         default_folder = self.default_folder
-        if default_folder is not None:
+        if default_folder is not None and default_folder is not ".":
             self.set_folder(default_folder)
-
 
     @property
     def default_folder(self):
@@ -34,6 +33,8 @@ class SongLibrary:
         return None
             
 
+
+
     def save_folder(self, folder):
         default_folder_cache_file = Path ("mahou_cache") / ("app_cache") / "folder_settings.json"
         dictionary = {"default_folder": str(folder)}
@@ -48,7 +49,9 @@ class SongLibrary:
             return None
         
         self.folder = folder
+        self.set_song_list(folder)
         self.save_folder(folder)
+        
 
     def set_song_list(self, folder: Path):
         self.song_list.clear()
@@ -59,22 +62,9 @@ class SongLibrary:
             if file_path.is_file() and file_path.suffix.lower() in supported_formats:
                 song = Song(path = file_path)
                 self.song_list.append(song)
+    
+        self.song_list.sort(key = lambda song: song.title.lower())
                 
-        log.trace("song list created")
+        log.debug("song list set")
 
-# ! cuidado pra n fazer merda kkkkkkkkkkkkk
-
-    def clear_all_songs_cache(self):
-        folder = Path ("mahou_cache") / ("song_cache")
-        if not folder.exists():
-            return
-        for file in Path.iterdir(folder):
-            if file.suffix != ".json" or not file.is_file():
-                log.warning("Cannot erase folder, as you may be trying to erase something you dont really wanna remove...")
-                return
-        
-        send2trash(folder)
-        log.info("Songs cache cleared.")
-            
-        
 
