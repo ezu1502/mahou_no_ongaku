@@ -49,6 +49,14 @@ QPushButton:pressed {
     border-right: 1px solid #404040;
 }
 
+QPushButton:disabled {
+    background-color: #181818;
+    color: #222222;
+
+}
+
+
+
 QListWidget {
     background-color: #141414;
     color: #EEEEEE;

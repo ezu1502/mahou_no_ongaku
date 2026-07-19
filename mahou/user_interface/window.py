@@ -22,9 +22,10 @@ class MahouInterface(QMainWindow):
 
         self.playing_item = None
 
+        self.WINDOW_TITLE = "MAHOU NO ONGAKU - True Music Player"
+        self.setWindowTitle(self.WINDOW_TITLE)
+
         WINDOW_WIDTH, WINDOW_HEIGHT = 900, 600
-        
-        self.setWindowTitle("MAHOU NO ONGAKU - True Music Player")
         self.setFixedSize(WINDOW_WIDTH, WINDOW_HEIGHT)
 
         style_path = Path(__file__).parent / "styles" / "mahou_main_theme.qss"
@@ -149,6 +150,14 @@ class MahouInterface(QMainWindow):
 
         self.right_panel.addWidget(self.previous_next_widget, alignment = align.AlignHCenter)
 
+        # * PLAY SELECTED BUTTON -------
+        # self.play_selected_button = QPushButton("Play Selected Song")
+        # self.play_selected_button.setFixedSize(300, 60)
+        # self.play_selected_button.pressed.connect(self.player_bridge.play_selected)
+        # self.play_selected_button.setEnabled(False)
+        # self.right_panel.addWidget(self.play_selected_button, alignment = align.AlignHCenter)
+
+        # * Revoking button focus ---------
         for button in self.right_panel_widget.findChildren(QPushButton):
             button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
             #isso impede que os meus keyboard shortcuts chamem funções dos próprios botões,
@@ -178,11 +187,6 @@ class MahouInterface(QMainWindow):
         # * ------------------------------
 
 
-
-            
-
-
-
 #region LIST REGION
 
     @property
@@ -209,8 +213,13 @@ class MahouInterface(QMainWindow):
     @property
     def listbox_selection(self):
         item = self.listbox.currentItem()
+
         return item
     
+    
+
+
+
     def choose_folder(self):
         self.player_bridge.stop_song()
         folder = Path(QFileDialog.getExistingDirectory(self, "Choose a folder"))

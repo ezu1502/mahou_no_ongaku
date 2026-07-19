@@ -29,9 +29,6 @@ class PlayerBridge:
                 self.load_and_play()
         self.window.update_UI_by_state()
 
-    def enter_key_command(self):
-        self.load_and_play()
-        self.window.update_UI_by_state()
 
     def load_and_play(self, specific_item = None):
         if specific_item is None:
@@ -54,8 +51,15 @@ class PlayerBridge:
         self.player.play_song()
 
         self.window.see_item(item)
-        self.show_now_playing(song.title)
-    
+
+        song_title = song.title
+        self.show_now_playing(song_title)
+        self.set_window_title(song_title = song_title)   
+
+    def play_selected(self):
+        self.load_and_play()
+        self.window.update_UI_by_state()
+
     def play_without_loading(self):
         self.player.play_song()
 
@@ -65,7 +69,27 @@ class PlayerBridge:
             self.window.hide_now_playing()
         self.window.update_UI_by_state()
         self.window.reset_listbox_UI()
+        self.set_window_title(reset = True)
         
+        
+    
+    def set_window_title(self, song_title = None, reset = False):
+        if reset:
+            self.window.setWindowTitle(self.window.WINDOW_TITLE)
+            return
+        
+        MAX_SIZE = 37
+        if song_title is None:
+            return
+        
+        if len(song_title) > MAX_SIZE:
+            song_title = song_title[:MAX_SIZE - 1] + "…"
+
+        if song_title:
+            self.window.setWindowTitle(f"{song_title} - MAHOU NO ONGAKU")
+
+
+
 
     def restart_song(self):
         match self.get_state():
@@ -115,7 +139,7 @@ class PlayerBridge:
                 self.window.see_item(new_item)
 
      
-                    
+    
             
 #endregion
 #region UI Updating
