@@ -17,7 +17,7 @@ QLabel {
 QLabel#title {
     color: #EEEEEE;
     font-family: "Bahnschrift";
-    font-size: 45px;
+    font-size: 41px;
 }
 
 
@@ -33,14 +33,37 @@ QPushButton {
 
     border-radius: 3;
     font-family: "Bahnschrift";
-    font-size: 30px;
+    font-size: 24px;
     outline: none;
 }
+/* 
+QPushButton#play_button {
+    border-top: 1px solid #744b8d;
+    border-left: 1px solid #5c2c7c;
+    border-bottom: 1px solid rgb(48, 27, 63);
+    border-right: 1px solid #412952;
+} */
+
+
 
 QPushButton:hover {
     background-color: #111111;
 }
+QPushButton#play_button {
+    font-size: 26px;
+}
 
+QPushButton#play_button:hover {
+    color: #a41cff;
+    background-color: #0c0c0c;
+    border-top: 1px solid #734a79;
+    border-left: 1px solid #3d2d3f;
+}
+QPushButton#play_button:pressed {
+    color: #a41cff;
+    background-color: #0d0d0e;
+    border: 1px solid #a41cff;
+}
 QPushButton:pressed {
     background-color: #333333;
     border-top: 1px solid #000000;
@@ -50,9 +73,8 @@ QPushButton:pressed {
 }
 
 QPushButton:disabled {
-    background-color: #181818;
-    color: #222222;
-
+    background-color: #191919;
+    color: #353535;
 }
 
 
@@ -76,7 +98,7 @@ QListWidget {
 
         stop:0 #202020,
         stop:1 #171717
-    )
+    );
     
 }
 
@@ -89,8 +111,14 @@ QListWidget::item:hover {
     border: none
 }   
 QListWidget::item:selected {
-    background: #555555;
-    border: none
+    background-color: qlineargradient(
+        x1:0, y1:0,
+        x2:0, y2:1,
+
+        stop:0 #3B3B3B,
+        stop:1 #555555
+    );
+    border: none;
 }   
 QListWidget::item:selected:!active {
     color: #EEEEEE;

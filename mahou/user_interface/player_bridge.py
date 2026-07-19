@@ -32,13 +32,14 @@ class PlayerBridge:
 
     def load_and_play(self, specific_item = None):
         if specific_item is None:
-            item = self.window.listbox_selection
+            item = self.window.get_listbox_selection()
             if item is None:
                 return
         else:
             item = specific_item
         
         self.window.update_listbox_UI(new_item = item)
+        
 
         self.window.playing_item = item
 
@@ -68,6 +69,7 @@ class PlayerBridge:
         if hide_now_playing:
             self.window.hide_now_playing()
         self.window.update_UI_by_state()
+        self.window.manage_play_selected_button()
         self.window.reset_listbox_UI()
         self.set_window_title(reset = True)
         

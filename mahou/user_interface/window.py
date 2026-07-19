@@ -78,7 +78,7 @@ class MahouInterface(QMainWindow):
         self.listbox.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.listbox.setAlternatingRowColors(True)
         self.listbox.setUniformItemSizes(True)
-        
+        self.listbox.itemSelectionChanged.connect(self.manage_play_selected_button)
 
         self.middle_layout.addWidget(self.listbox, 9)
     
@@ -108,6 +108,7 @@ class MahouInterface(QMainWindow):
         self.play_pause_button = QPushButton("PLAY")
         self.play_pause_button.setFixedSize(300, 60)
         self.play_pause_button.pressed.connect(self.player_bridge.toggle)
+        self.play_pause_button.setObjectName("play_button")
 
         self.right_panel.addWidget(self.play_pause_button, alignment = align.AlignHCenter)
 
@@ -132,7 +133,7 @@ class MahouInterface(QMainWindow):
 
         self.previous_next_layout = QHBoxLayout()
         self.previous_next_layout.setContentsMargins(0,0,0,0)
-        self.previous_next_layout.setSpacing(20)
+        self.previous_next_layout.setSpacing(10)
 
         self.previous_next_widget.setLayout(self.previous_next_layout)
 
@@ -151,11 +152,11 @@ class MahouInterface(QMainWindow):
         self.right_panel.addWidget(self.previous_next_widget, alignment = align.AlignHCenter)
 
         # * PLAY SELECTED BUTTON -------
-        # self.play_selected_button = QPushButton("Play Selected Song")
-        # self.play_selected_button.setFixedSize(300, 60)
-        # self.play_selected_button.pressed.connect(self.player_bridge.play_selected)
-        # self.play_selected_button.setEnabled(False)
-        # self.right_panel.addWidget(self.play_selected_button, alignment = align.AlignHCenter)
+        self.play_selected_button = QPushButton("Play Selected Song")
+        self.play_selected_button.setFixedSize(300, 50)
+        self.play_selected_button.pressed.connect(self.player_bridge.play_selected)
+        self.play_selected_button.setEnabled(False)
+        self.right_panel.addWidget(self.play_selected_button, alignment = align.AlignHCenter)
 
         # * Revoking button focus ---------
         for button in self.right_panel_widget.findChildren(QPushButton):
@@ -210,15 +211,12 @@ class MahouInterface(QMainWindow):
     def song_list(self):
         return self.app.library.song_list
     
-    @property
-    def listbox_selection(self):
-        item = self.listbox.currentItem()
 
+    def get_listbox_selection(self):
+        selected_items = self.listbox.selectedItems()
+        item = selected_items[0] if selected_items else None  
         return item
     
-    
-
-
 
     def choose_folder(self):
         self.player_bridge.stop_song()
@@ -245,6 +243,15 @@ class MahouInterface(QMainWindow):
             
         new_item.setForeground(QColor("#FFC400"))
         new_item.setSelected(False)
+
+
+    def manage_play_selected_button(self):
+        selected_items = self.listbox.selectedItems()
+        item = selected_items[0] if selected_items else None  
+        
+        
+        self.play_selected_button.setEnabled(item is not self.playing_item and item is not None)
+
 
     def reset_listbox_UI(self):
         if self.playing_item is None:
