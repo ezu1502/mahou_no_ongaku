@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import (QMainWindow, QWidget, QHBoxLayout, QVBoxLayout, QLabel, QPushButton, QListWidget,
 QListWidgetItem, QGridLayout, QFileDialog, QSizePolicy)
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QBrush, QColor
+from PySide6.QtGui import QBrush, QColor, QShortcut, QKeySequence
 from mahou_libs.time_functions import log_delta_time
 from pathlib import Path
 from mahou.core.song import Song
@@ -38,7 +38,28 @@ class MahouInterface(QMainWindow):
         self.central_widget.setLayout(self.main_layout)
 
         self.set_interface_aspect()
+        self.set_shortcuts()
 
+
+    def set_shortcuts(self):
+        self.toggle_key = QShortcut(QKeySequence("Space"), self)
+        self.toggle_key.activated.connect(self.player_bridge.toggle)
+
+        self.stop_key = QShortcut(self)
+        self.stop_key.setKeys([QKeySequence("Escape"), QKeySequence("S")])
+        self.stop_key.activated.connect(self.player_bridge.stop_song)
+
+        self.left_key = QShortcut(QKeySequence("Left"), self)
+        self.left_key.activated.connect(lambda: self.player_bridge.change_song(-1))
+
+        self.right_key = QShortcut(QKeySequence("Right"), self)
+        self.right_key.activated.connect(lambda: self.player_bridge.change_song(1))
+
+        self.enter_key = QShortcut(QKeySequence("Return"), self)
+        self.enter_key.activated.connect(self.player_bridge.load_and_play)
+
+    
+    
     @log_delta_time
     def set_interface_aspect(self):
         # * TÍTULO -------
@@ -127,6 +148,12 @@ class MahouInterface(QMainWindow):
         self.previous_next_layout.addWidget(self.next_button, alignment = align.AlignRight)
 
         self.right_panel.addWidget(self.previous_next_widget, alignment = align.AlignHCenter)
+
+        for button in self.right_panel_widget.findChildren(QPushButton):
+            button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+            #isso impede que os meus keyboard shortcuts chamem funções dos próprios botões,
+            #pra eu poder controlar as ações do player
+
         
         # * NOW PLAYING LABEL
 
@@ -185,6 +212,7 @@ class MahouInterface(QMainWindow):
         return item
     
     def choose_folder(self):
+        self.player_bridge.stop_song()
         folder = Path(QFileDialog.getExistingDirectory(self, "Choose a folder"))
         self.app.set_library_folder(folder)
         new_list = self.app.get_library_song_list
@@ -195,7 +223,6 @@ class MahouInterface(QMainWindow):
 #endregion
 #region UI Update
     def update_UI_by_state(self):
-
         match self.get_state():
             case PS.PAUSED | PS.IN_MENU:
                 self.play_pause_button.setText("PLAY")
@@ -206,13 +233,15 @@ class MahouInterface(QMainWindow):
         
         if self.playing_item is not None:
             self.playing_item.setForeground(QBrush())
-            song_name = self.playing_item.data(Qt.ItemDataRole.UserRole).title
-            self.playing_item.setText(song_name)
-
-        # text = new_item.text()
-        # new_item.setText(f"▶ {text}")
+            
         new_item.setForeground(QColor("#FFC400"))
         new_item.setSelected(False)
+
+    def reset_listbox_UI(self):
+        if self.playing_item is None:
+            return
+        
+        self.playing_item.setForeground(QBrush())
 
     def song_list_length(self) -> int:
         return len(self.app.library.song_list)
@@ -237,7 +266,7 @@ class MahouInterface(QMainWindow):
         
         self.now_playing.show()
         
-    def hide_now_playing(self, text: str) -> None:
+    def hide_now_playing(self) -> None:
         if not self.now_playing.isVisible():
             return
         

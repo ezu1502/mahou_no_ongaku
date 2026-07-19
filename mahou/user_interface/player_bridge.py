@@ -13,6 +13,9 @@ class PlayerBridge:
         self.usable_length = song_list_length - 1
 
     def toggle(self):
+        # print("toggle")
+        # print(self.get_state())
+
         match self.get_state():
             case PS.PLAYING:
                 self.player.pause_song()
@@ -26,6 +29,9 @@ class PlayerBridge:
                 self.load_and_play()
         self.window.update_UI_by_state()
 
+    def enter_key_command(self):
+        self.load_and_play()
+        self.window.update_UI_by_state()
 
     def load_and_play(self, specific_item = None):
         if specific_item is None:
@@ -53,16 +59,21 @@ class PlayerBridge:
     def play_without_loading(self):
         self.player.play_song()
 
-    def stop_song(self, **kwargs):
+    def stop_song(self, hide_now_playing = True, **kwargs):
         self.player.stop_song(**kwargs)
+        if hide_now_playing:
+            self.window.hide_now_playing()
+        self.window.update_UI_by_state()
+        self.window.reset_listbox_UI()
+        
 
     def restart_song(self):
         match self.get_state():
             case PS.PLAYING:
-                self.stop_song(reset_loaded_song = False)
+                self.stop_song(hide_now_playing= False, reset_loaded_song = False)
                 self.load_and_play()
             case PS.PAUSED:
-                self.stop_song(reset_loaded_song = False)
+                self.stop_song(hide_now_playing = False, reset_loaded_song = False)
                 self.player.load_song(self.player.loaded_song)
                 self.set_state(PS.PAUSED)
                 self.no_need_to_load = True
