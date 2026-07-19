@@ -48,6 +48,7 @@ class PlayerBridge:
         self.player.play_song()
 
         self.window.see_item(item)
+        self.show_now_playing(song.title)
     
     def play_without_loading(self):
         self.player.play_song()
@@ -83,8 +84,6 @@ class PlayerBridge:
         elif new_index < 0 and change < 0:
             new_index = self.usable_length
 
-
-
         new_item = self.window.listbox.item(new_index)
 
         match self.get_state():
@@ -114,3 +113,6 @@ class PlayerBridge:
     
     def set_state(self, state: PS):
         self.window.set_state(state)
+
+    def show_now_playing(self, text: str):
+        self.window.show_now_playing(text)

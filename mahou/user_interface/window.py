@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import (QMainWindow, QWidget, QHBoxLayout, QVBoxLayout, QLabel, QPushButton, QListWidget,
-QListWidgetItem, QGridLayout, QFileDialog)
+QListWidgetItem, QGridLayout, QFileDialog, QSizePolicy)
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QBrush, QColor
 from mahou_libs.time_functions import log_delta_time
@@ -9,6 +9,7 @@ from mahou.core.ENUMS import PS
 from mahou.user_interface.player_bridge import PlayerBridge
 
 align = Qt.AlignmentFlag
+size_policy = QSizePolicy.Policy
 
 class MahouInterface(QMainWindow):
     @log_delta_time
@@ -20,9 +21,11 @@ class MahouInterface(QMainWindow):
         self.player_bridge = PlayerBridge(window = self)
 
         self.playing_item = None
+
+        WINDOW_WIDTH, WINDOW_HEIGHT = 900, 600
         
         self.setWindowTitle("MAHOU NO ONGAKU - True Music Player")
-        self.setFixedSize(900, 600)
+        self.setFixedSize(WINDOW_WIDTH, WINDOW_HEIGHT)
 
         style_path = Path(__file__).parent / "styles" / "mahou_main_theme.qss"
         self.setStyleSheet(self.load_stylesheet_string(style_path))
@@ -53,16 +56,26 @@ class MahouInterface(QMainWindow):
         self.listbox.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.listbox.setAlternatingRowColors(True)
         self.listbox.setUniformItemSizes(True)
+        
 
         self.middle_layout.addWidget(self.listbox, 9)
     
         # * RIGHT PANEL/
         
+
         self.right_panel_widget = QWidget()
-        
+        self.right_panel_widget.setMinimumWidth(0)
+        self.right_panel_widget.setContentsMargins(0, 0, 0, 0)
+
+        self.right_panel_widget.setSizePolicy(
+            size_policy.Expanding,
+            size_policy.Preferred
+        )
+
         self.right_panel = QVBoxLayout()
-        self.right_panel.setAlignment(align.AlignTop | align.AlignHCenter)
+        self.right_panel.setAlignment(align.AlignTop)
         self.right_panel.setSpacing(15)
+        self.right_panel.setContentsMargins(10, 0, 10, 0)
 
         self.right_panel_widget.setLayout(self.right_panel)
 
@@ -74,21 +87,21 @@ class MahouInterface(QMainWindow):
         self.play_pause_button.setFixedSize(300, 60)
         self.play_pause_button.pressed.connect(self.player_bridge.toggle)
 
-        self.right_panel.addWidget(self.play_pause_button)
+        self.right_panel.addWidget(self.play_pause_button, alignment = align.AlignHCenter)
 
         # * FOLDER BUTTON ---
         self.folder_button = QPushButton("Choose Folder")
         self.folder_button.setFixedSize(300, 60)
         self.folder_button.pressed.connect(self.choose_folder)
         
-        self.right_panel.addWidget(self.folder_button)
+        self.right_panel.addWidget(self.folder_button, alignment = align.AlignHCenter)
 
         # * RESTART SONG BUTTON --
         
         self.restart_button = QPushButton("Restart Song")
         self.restart_button.setFixedSize(300, 60)
         self.restart_button.pressed.connect(self.player_bridge.restart_song)
-        self.right_panel.addWidget(self.restart_button)
+        self.right_panel.addWidget(self.restart_button, alignment = align.AlignHCenter)
         
         # * PREVIOUS/NEXT SONG BUTTONS
 
@@ -113,9 +126,22 @@ class MahouInterface(QMainWindow):
         self.previous_next_layout.addWidget(self.previous_button, alignment = align.AlignLeft)
         self.previous_next_layout.addWidget(self.next_button, alignment = align.AlignRight)
 
-        self.right_panel.addWidget(self.previous_next_widget)
+        self.right_panel.addWidget(self.previous_next_widget, alignment = align.AlignHCenter)
         
+        # * NOW PLAYING LABEL
 
+        self.now_playing = QLabel("Now Playing: xxxx")
+        self.now_playing.setAlignment(align.AlignHCenter)
+        # self.now_playing.setMinimumWidth(0)
+
+        self.now_playing.setSizePolicy(
+            size_policy.Ignored, #eixo X
+            size_policy.Minimum #eixo Y
+        )
+
+        self.now_playing.setWordWrap(True)
+        self.now_playing.hide()
+        self.right_panel.addWidget(self.now_playing)
 
 
         # * -------
@@ -185,21 +211,38 @@ class MahouInterface(QMainWindow):
 
         # text = new_item.text()
         # new_item.setText(f"▶ {text}")
-        new_item.setForeground(QColor("#FFFF00"))
+        new_item.setForeground(QColor("#FFC400"))
         new_item.setSelected(False)
 
     def song_list_length(self) -> int:
         return len(self.app.library.song_list)
 
-    def get_state(self):
+    def get_state(self) -> PS:
         return self.app.state
     
     def set_state(self, state: PS):
         self.app.state = state
         self.update_UI_by_state()
 
-    def see_item(self, item):
+    def see_item(self, item) -> None:
         self.listbox.scrollToItem(item)
+
+
+    def show_now_playing(self, text: str) -> None:
+
+        self.now_playing.setText(f'Now Playing: <span style = "color: #FFC400">{text}</span>')
+
+        if self.now_playing.isVisible():
+            return
+        
+        self.now_playing.show()
+        
+    def hide_now_playing(self, text: str) -> None:
+        if not self.now_playing.isVisible():
+            return
+        
+        self.now_playing.hide()
+
     #endregion
 
     #region STYLESHEET

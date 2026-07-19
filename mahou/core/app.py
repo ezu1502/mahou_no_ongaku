@@ -29,8 +29,6 @@ class App:
         self.mahou_window.show()
         second_point(first)
         
-        
-
 
         
     def run(self):

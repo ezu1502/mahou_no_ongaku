@@ -8,6 +8,11 @@ QMainWindow {
         stop:1 #0a0a0a
     )
 }
+QLabel {
+    color: #EEEEEE;
+    font-family: "Bahnschrift";
+    font-size: 20px;
+}
 
 QLabel#title {
     color: #EEEEEE;
