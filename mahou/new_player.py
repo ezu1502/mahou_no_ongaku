@@ -13,18 +13,17 @@ class MahouPlayer(QObject):
         super().__init__()
 
         self.app = app
+        self.loaded_song = None
+
         
         self.media_player = QMediaPlayer(self)
         self.audio_output = QAudioOutput(self)
 
         self.media_player.setAudioOutput(self.audio_output)
         self.media_player.playbackStateChanged.connect(self.handle_playback_state)
-        self.media_player.errorOccurred.connect(self.handle_error)
 
         self.current_song: Song | None = None
         
-    def handle_error(self):
-        pass
 
     def handle_playback_state(self, state: PlayerState):
         match state:
@@ -43,6 +42,7 @@ class MahouPlayer(QObject):
         if not path.is_file():
             raise FileNotFoundError(f"Song path {path} does not exist or is not a valid song path")
         
+        self.loaded_song = song
         
         path_url = QUrl.fromLocalFile(str(path))
 
@@ -59,3 +59,5 @@ class MahouPlayer(QObject):
     def stop_song(self):
         self.media_player.stop()
 
+    def set_pos(self, position):
+        self.media_player.setPosition(position)

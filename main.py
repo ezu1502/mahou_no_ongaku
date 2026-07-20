@@ -1,4 +1,4 @@
-import os; os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"; os.environ["BOCCA_HIDE_GREETING"] = "1"
+import os; os.environ["BOCCA_HIDE_GREETING"] = "1"
 os.environ["QT_LOGGING_RULES"] = "qt.multimedia.ffmpeg.*=false"
 os.environ.pop("QT_FFMPEG_DEBUG", None)
 

@@ -1,6 +1,6 @@
 from mahou.core.ENUMS import PS
-from PySide6.QtGui import Qt, QColor, QBrush
-
+from PySide6.QtGui import QColor, QBrush
+from PySide6.QtCore import Qt
 #region PLAYER CONTROLS
 class PlayerBridge:
     def __init__(self, window):
@@ -9,32 +9,22 @@ class PlayerBridge:
         self.player = self.window.player
         self.player.state_changed.connect(self.window.update_UI_by_state)
 
-
         self.app = self.window.app
 
         self.no_need_to_load = False
-        song_list_length = window.song_list_length()
-        self.usable_length = song_list_length - 1
 
     def toggle(self):
-        # print("toggle")
-        # print(self.get_state())
-
         match self.get_state():
             case PS.PLAYING:
                 self.player.pause_song()
             case PS.PAUSED:
-                if self.no_need_to_load:
-                    self.play_without_loading()
-                    self.no_need_to_load = False
-                else:
-                    self.player.play_song()
+                self.player.play_song()
             case PS.IN_MENU:
                 self.load_and_play()
-        self.window.update_UI_by_state()
+        # self.window.update_UI_by_state()
 
 
-    def load_and_play(self, specific_item = None):
+    def load_and_play(self, specific_item = None, play = True):
         if specific_item is None:
             item = self.window.get_listbox_selection()
             if item is None:
@@ -53,7 +43,8 @@ class PlayerBridge:
             return
     
         self.player.load_song(song)
-        self.player.play_song()
+        if play:
+            self.player.play_song()
 
         self.window.see_item(item)
 
@@ -63,16 +54,18 @@ class PlayerBridge:
 
     def play_selected(self):
         self.load_and_play()
-        self.window.update_UI_by_state()
+        # self.window.update_UI_by_state()
 
     def play_without_loading(self):
         self.player.play_song()
 
-    def stop_song(self, hide_now_playing = True, **kwargs):
-        self.player.stop_song(**kwargs)
+    def stop_song(self, hide_now_playing = True):
+        self.player.stop_song()
         if hide_now_playing:
             self.window.hide_now_playing()
-        self.window.update_UI_by_state()
+
+        self.window.playing_item = None
+        # self.window.update_UI_by_state()
         self.window.manage_play_selected_button()
         self.window.reset_listbox_UI()
         self.set_window_title(reset = True)
@@ -98,15 +91,7 @@ class PlayerBridge:
 
 
     def restart_song(self):
-        match self.get_state():
-            case PS.PLAYING:
-                self.stop_song(hide_now_playing= False, reset_loaded_song = False)
-                self.load_and_play()
-            case PS.PAUSED:
-                self.stop_song(hide_now_playing = False, reset_loaded_song = False)
-                self.player.load_song(self.player.loaded_song)
-                self.set_state(PS.PAUSED)
-                self.no_need_to_load = True
+        self.player.set_pos(0)
         
 
     def change_song(self, change):
@@ -116,35 +101,24 @@ class PlayerBridge:
             return
         if change > 1 or change < -1:
             raise ValueError(f"Unexpected change value: ({change}). \nChange in function change_song must be between (-1) and (1)")
-       
+        
+        item_count = self.window.listbox.count()
         current_index = self.window.listbox.row(self.window.playing_item)
-        new_index = current_index + change
-
-        if new_index > self.usable_length and change > 0:
-            new_index = 0
-        elif new_index < 0 and change < 0:
-            new_index = self.usable_length
+        new_index = (current_index + change) % item_count
 
         new_item = self.window.listbox.item(new_index)
+
+        if new_item is None:
+            return
 
         match self.get_state():
             case PS.PLAYING:
                 self.load_and_play(new_item)
             case PS.PAUSED:
-                self.stop_song()
+                self.load_and_play(new_item)
+                self.player.pause_song()
 
 
-                self.window.update_listbox_UI(new_item = new_item)
-                self.window.playing_item = new_item
-
-
-                song = new_item.data(Qt.ItemDataRole.UserRole)
-                self.player.load_song(song)
-                self.set_state(PS.PAUSED)
-                self.no_need_to_load = True
-                self.window.see_item(new_item)
-
-     
     
             
 #endregion

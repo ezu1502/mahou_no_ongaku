@@ -107,7 +107,7 @@ class MahouInterface(QMainWindow):
 
         self.play_pause_button = QPushButton("PLAY")
         self.play_pause_button.setFixedSize(300, 60)
-        self.play_pause_button.pressed.connect(self.player_bridge.toggle)
+        self.play_pause_button.clicked.connect(self.player_bridge.toggle)
         self.play_pause_button.setObjectName("play_button")
 
         self.right_panel.addWidget(self.play_pause_button, alignment = align.AlignHCenter)
@@ -115,7 +115,7 @@ class MahouInterface(QMainWindow):
         # * FOLDER BUTTON ---
         self.folder_button = QPushButton("Choose Folder")
         self.folder_button.setFixedSize(300, 60)
-        self.folder_button.pressed.connect(self.choose_folder)
+        self.folder_button.clicked.connect(self.choose_folder)
         
         self.right_panel.addWidget(self.folder_button, alignment = align.AlignHCenter)
 
@@ -219,10 +219,16 @@ class MahouInterface(QMainWindow):
     
 
     def choose_folder(self):
-        self.player_bridge.stop_song()
-        folder = Path(QFileDialog.getExistingDirectory(self, "Choose a folder"))
+        folder_string = QFileDialog.getExistingDirectory(self, "Choose a folder")
+        if not folder_string: 
+            return
+        
+        folder = Path(folder_string)
+
         self.app.set_library_folder(folder)
         new_list = self.app.get_library_song_list
+
+        self.player_bridge.stop_song()
 
         self.set_listbox_list(new_list)
         
@@ -237,7 +243,6 @@ class MahouInterface(QMainWindow):
                 self.play_pause_button.setText("PAUSE")
 
     def update_listbox_UI(self, new_item):
-        
         if self.playing_item is not None:
             self.playing_item.setForeground(QBrush())
             
