@@ -124,6 +124,10 @@ class MahouInterface(QMainWindow):
         self.dark_theme_action = QAction("Dark Theme")
         self.light_theme_action = QAction("Light Theme")
         
+        self.stop_song_shortcut = QAction("Stop Song - [S]")
+
+        self.shortcuts_menu.addAction(self.stop_song_shortcut)
+
         self.themes_menu.addAction(self.dark_theme_action)
         self.themes_menu.addAction(self.light_theme_action)
 
