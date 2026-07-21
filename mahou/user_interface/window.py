@@ -9,6 +9,9 @@ from mahou.core.ENUMS import PS
 from mahou.user_interface.player_bridge import PlayerBridge
 from mahou_libs.mahou_math import conversions
 
+import json
+
+
 align = Qt.AlignmentFlag
 size_policy = QSizePolicy.Policy
 
@@ -22,6 +25,7 @@ class MahouInterface(QMainWindow):
         self.player_bridge = PlayerBridge(window = self)
 
         self.playing_item = None
+        self.user_options_dict = None
 
         self.WINDOW_TITLE = "MAHOU NO ONGAKU - True Music Player"
         self.setWindowTitle(self.WINDOW_TITLE)
@@ -39,9 +43,10 @@ class MahouInterface(QMainWindow):
         self.main_layout.setAlignment(align.AlignTop)
         self.central_widget.setLayout(self.main_layout)
 
-        self.setup_menu_bar()
         self.set_interface_aspect()
         self.set_shortcuts()
+        self.setup_menu_bar()
+
 
         
     
@@ -101,13 +106,20 @@ class MahouInterface(QMainWindow):
 
         self.view_restart_button = QAction("Restart Button")
         self.view_restart_button.setCheckable(True)
-        self.view_restart_button.setChecked(True)
         self.view_restart_button.toggled.connect(self.toggle_restart_button_visibility)
 
         self.view_folder_button = QAction("Folder Button")
         self.view_folder_button.setCheckable(True)
-        self.view_folder_button.setChecked(True)
         self.view_folder_button.toggled.connect(self.toggle_folder_button_visibility)
+
+
+        if self.user_options_dict is not None:
+            self.view_restart_button.setChecked(self.user_options_dict["restart"])
+            self.view_folder_button.setChecked(self.user_options_dict["folder"])
+        else:
+            self.view_restart_button.setChecked(True)
+            self.view_folder_button.setChecked(True)
+
 
         self.dark_theme_action = QAction("Dark Theme")
         self.light_theme_action = QAction("Light Theme")
@@ -128,15 +140,57 @@ class MahouInterface(QMainWindow):
         else:
             self.restart_button.hide()
 
+        self.save_personalized_options()
+
     def toggle_folder_button_visibility(self, checked):
         if checked:
             self.folder_button.show()
         else:
             self.folder_button.hide()
 
+        self.save_personalized_options()
+        
+
 
     def save_personalized_options(self):
         options_save_file = Path ("mahou_cache") / ("app_cache") / "user_settings.json"
+
+        view_restart = self.view_restart_button.isChecked()
+        view_folder = self.view_folder_button.isChecked()
+
+        options = {
+            "view restart": view_restart,
+            "view folder": view_folder,
+        }
+
+        with options_save_file.open("w", encoding = "utf-8") as save:
+            json.dump(options, save, ensure_ascii = True, indent = 4)
+
+    def load_personalized_options(self):
+        options_save_file = Path ("mahou_cache") / ("app_cache") / "user_settings.json"
+        valid = options_save_file.exists() and options_save_file.is_file()
+        
+        if not valid:
+            return
+        
+        with options_save_file.open("r", encoding = "utf-8") as options:
+            option_dict = json.load(options)
+
+        restart_visible = option_dict["view restart"]
+        folder_visible = option_dict["view folder"]
+
+        self.restart_button.setVisible(restart_visible)
+        self.folder_button.setVisible(folder_visible)
+
+        self.user_options_dict = {
+            "restart" : restart_visible,
+            "folder": folder_visible
+        }
+
+
+
+    
+            
 
 
     @log_delta_time
@@ -208,6 +262,9 @@ class MahouInterface(QMainWindow):
 
 
         self.right_panel.addWidget(self.restart_button, alignment = align.AlignHCenter)
+
+        # This loads user's preferences about the buttons visibility
+        self.load_personalized_options()
         
         # * PREVIOUS/NEXT SONG BUTTONS
 
