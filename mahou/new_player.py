@@ -9,21 +9,43 @@ PlayerState =  QMediaPlayer.PlaybackState
 
 class MahouPlayer(QObject):
     state_changed = Signal()
+    song_ended = Signal()
+
+    position_changed = Signal(int)
+    duration_changed = Signal(int)
+
     def __init__(self, app):
         super().__init__()
 
         self.app = app
         self.loaded_song = None
 
-        
         self.media_player = QMediaPlayer(self)
         self.audio_output = QAudioOutput(self)
 
         self.media_player.setAudioOutput(self.audio_output)
-        self.media_player.playbackStateChanged.connect(self.handle_playback_state)
+
+        self.media_player.playbackStateChanged.connect(self.handle_playback_state) #Estado do playback mudou
+        self.media_player.mediaStatusChanged.connect(self.handle_media_status) #Status da media mudou
+        self.media_player.durationChanged.connect(self.handle_duration_changed) #Duração total mudou
+        self.media_player.positionChanged.connect(self.handle_position_changed)
 
         self.current_song: Song | None = None
         
+
+    def handle_duration_changed(self, duration: int):
+        self.duration_changed.emit(duration)
+
+    def handle_position_changed(self, position: int):
+        self.position_changed.emit(position)
+
+
+    def handle_media_status(self, status: QMediaPlayer.MediaStatus):
+        if status == QMediaPlayer.MediaStatus.EndOfMedia:
+            print("Song ended!")
+            self.song_ended.emit()
+
+
 
     def handle_playback_state(self, state: PlayerState):
         match state:
@@ -58,6 +80,6 @@ class MahouPlayer(QObject):
 
     def stop_song(self):
         self.media_player.stop()
-
+        self.media_player.setSource(QUrl())
     def set_pos(self, position):
         self.media_player.setPosition(position)

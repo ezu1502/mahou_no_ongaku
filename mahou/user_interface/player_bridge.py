@@ -8,10 +8,17 @@ class PlayerBridge:
 
         self.player = self.window.player
         self.player.state_changed.connect(self.window.update_UI_by_state)
+        self.player.song_ended.connect(lambda: self.change_song(1))
+
 
         self.app = self.window.app
 
         self.no_need_to_load = False
+
+    
+
+
+
 
     def toggle(self):
         match self.get_state():
@@ -32,11 +39,7 @@ class PlayerBridge:
         else:
             item = specific_item
         
-        self.window.update_listbox_UI(new_item = item)
-        
-
-        self.window.playing_item = item
-
+       
         song = item.data(Qt.ItemDataRole.UserRole)
   
         if song is None:
@@ -46,11 +49,22 @@ class PlayerBridge:
         if play:
             self.player.play_song()
 
+
+        self.window.update_listbox_UI(new_item = item)
+        
+        self.window.playing_item = item
+
+
         self.window.see_item(item)
 
         song_title = song.title
         self.show_now_playing(song_title)
-        self.set_window_title(song_title = song_title)   
+        self.set_window_title(song_title = song_title)
+
+        # if self.window.position_label.isHidden() or self.window.duration_label.isHidden():
+        #     self.window.position_label.show()
+        #     self.window.duration_label.show()   
+
 
     def play_selected(self):
         self.load_and_play()
@@ -59,17 +73,15 @@ class PlayerBridge:
     def play_without_loading(self):
         self.player.play_song()
 
-    def stop_song(self, hide_now_playing = True):
+    def stop_song(self):
         self.player.stop_song()
-        if hide_now_playing:
-            self.window.hide_now_playing()
+    
+        self.window.hide_now_playing()
 
         self.window.playing_item = None
-        # self.window.update_UI_by_state()
         self.window.manage_play_selected_button()
-        self.window.reset_listbox_UI()
+        # self.window.reset_listbox_UI()
         self.set_window_title(reset = True)
-        
         
     
     def set_window_title(self, song_title = None, reset = False):
@@ -99,10 +111,13 @@ class PlayerBridge:
             return
         if change == 0:
             return
-        if change > 1 or change < -1:
+        if change not in (-1, 1):
             raise ValueError(f"Unexpected change value: ({change}). \nChange in function change_song must be between (-1) and (1)")
         
         item_count = self.window.listbox.count()
+        if item_count == 0:
+            return
+        
         current_index = self.window.listbox.row(self.window.playing_item)
         new_index = (current_index + change) % item_count
 
@@ -112,7 +127,7 @@ class PlayerBridge:
             return
 
         match self.get_state():
-            case PS.PLAYING:
+            case PS.PLAYING | PS.IN_MENU:
                 self.load_and_play(new_item)
             case PS.PAUSED:
                 self.load_and_play(new_item)

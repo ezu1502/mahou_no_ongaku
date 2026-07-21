@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import (QMainWindow, QWidget, QHBoxLayout, QVBoxLayout, QLabel, QPushButton, QListWidget,
-QListWidgetItem, QGridLayout, QFileDialog, QSizePolicy)
+QListWidgetItem, QGridLayout, QFileDialog, QSizePolicy, QSlider)
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QBrush, QColor, QShortcut, QKeySequence
 from mahou_libs.time_functions import log_delta_time
@@ -7,6 +7,7 @@ from pathlib import Path
 from mahou.core.song import Song
 from mahou.core.ENUMS import PS
 from mahou.user_interface.player_bridge import PlayerBridge
+from mahou_libs.mahou_math import conversions
 
 align = Qt.AlignmentFlag
 size_policy = QSizePolicy.Policy
@@ -41,6 +42,30 @@ class MahouInterface(QMainWindow):
         self.set_interface_aspect()
         self.set_shortcuts()
 
+        
+    
+
+    def handle_duration_changed(self, duration):
+        self.progress_bar.setMaximum(duration)
+
+        duration_string = conversions.seconds_to_base60(duration/1000)
+        self.duration_label.setText(f"{duration_string}")
+
+    def handle_position_changed(self, position): #esse acha a posição depois do usuario arrastar
+        if not self.progress_bar.isSliderDown(): #IsSliderDown significa que o usuario ta segurando
+            self.progress_bar.setValue(position)
+            position_string = conversions.seconds_to_base60(position/1000)
+            self.position_label.setText(f"{position_string}")
+
+    def set_position_string(self, position): #Esse monitora a posição do slider
+        position_string = conversions.seconds_to_base60(position/1000)
+        self.position_label.setText(f"{position_string}")
+
+    def set_slider_position(self):
+        position = self.progress_bar.value()
+        self.player.set_pos(position)
+
+   
 
     def set_shortcuts(self):
         self.toggle_key = QShortcut(QKeySequence("Space"), self)
@@ -124,6 +149,10 @@ class MahouInterface(QMainWindow):
         self.restart_button = QPushButton("Restart Song")
         self.restart_button.setFixedSize(300, 60)
         self.restart_button.pressed.connect(self.player_bridge.restart_song)
+
+        self.restart_button.setEnabled(False)
+
+
         self.right_panel.addWidget(self.restart_button, alignment = align.AlignHCenter)
         
         # * PREVIOUS/NEXT SONG BUTTONS
@@ -146,6 +175,10 @@ class MahouInterface(QMainWindow):
         self.next_button.setFixedSize(145, 60)
         self.next_button.pressed.connect(lambda: self.player_bridge.change_song(1))
 
+        self.previous_button.setEnabled(False)
+        self.next_button.setEnabled(False)
+
+
         self.previous_next_layout.addWidget(self.previous_button, alignment = align.AlignLeft)
         self.previous_next_layout.addWidget(self.next_button, alignment = align.AlignRight)
 
@@ -164,8 +197,54 @@ class MahouInterface(QMainWindow):
             #isso impede que os meus keyboard shortcuts chamem funções dos próprios botões,
             #pra eu poder controlar as ações do player
 
+        # * PROGRESS BAR
+        self.bar_and_numbers_layout = QVBoxLayout()
+        self.bar_and_numbers_layout.setSpacing(5)
+
+        self.progress_bar = QSlider(Qt.Orientation.Horizontal)
+        self.progress_bar.setMinimum(0)
+        self.progress_bar.setMaximum(0)
+        self.progress_bar.setValue(0)
+        self.progress_bar.setFixedWidth(320)
+
+        self.player.duration_changed.connect(self.handle_duration_changed)
+        self.player.position_changed.connect(self.handle_position_changed)
+
+        self.progress_bar.sliderMoved.connect(self.set_position_string)
+        self.progress_bar.sliderReleased.connect(self.set_slider_position)
+
+        self.right_panel.addSpacing(7)
+
+        self.bar_and_numbers_layout.addWidget(self.progress_bar, alignment = align.AlignHCenter)
+
+        # * PROGRESS LABEL
+
+        self.progress_widget = QWidget()
+        self.progress_widget.setFixedSize(300, 18)
+
+        self.progress_layout = QHBoxLayout()
+        self.progress_layout.setContentsMargins(0,0,0,0)
+        self.progress_layout.setSpacing(10)
+
+        self.progress_widget.setLayout(self.progress_layout)
+
+        self.position_label = QLabel("0:00")
+        self.duration_label = QLabel("0:00")
+
+        # self.position_label.hide()
+        # self.duration_label.hide()
+
+        self.progress_layout.addWidget(self.position_label, alignment = align.AlignLeft)
+        self.progress_layout.addWidget(self.duration_label, alignment = align.AlignRight)
+
+    
+        self.bar_and_numbers_layout.addWidget(self.progress_widget, alignment = align.AlignHCenter)
+
+        self.right_panel.addLayout(self.bar_and_numbers_layout)
         
-        # * NOW PLAYING LABEL
+ # * NOW PLAYING LABEL
+
+        self.right_panel.addSpacing(7)
 
         self.now_playing = QLabel("Now Playing: xxxx")
         self.now_playing.setAlignment(align.AlignHCenter)
@@ -178,10 +257,15 @@ class MahouInterface(QMainWindow):
 
         self.now_playing.setWordWrap(True)
         self.now_playing.hide()
-        self.right_panel.addWidget(self.now_playing)
+        self.right_panel.addWidget(self.now_playing, alignment = align.AlignTop)
+
+        
 
 
-        # * -------
+
+
+
+        # * -------------
 
         self.set_listbox_list(self.song_list)
 
@@ -237,15 +321,37 @@ class MahouInterface(QMainWindow):
 #region UI Update
     def update_UI_by_state(self):
         match self.get_state():
-            case PS.PAUSED | PS.IN_MENU:
+            case PS.PAUSED:
                 self.play_pause_button.setText("PLAY")
+
+                self.next_button.setEnabled(True)
+                self.previous_button.setEnabled(True)
+                self.restart_button.setEnabled(True)
+
+            case PS.IN_MENU:
+                self.play_pause_button.setText("PLAY")
+
+                self.next_button.setEnabled(False)
+                self.previous_button.setEnabled(False)
+                self.restart_button.setEnabled(False)
+
+                self.duration_label.setText("0:00")
+
+                self.reset_listbox_UI()
+
             case PS.PLAYING:
                 self.play_pause_button.setText("PAUSE")
+
+                self.next_button.setEnabled(True)
+                self.previous_button.setEnabled(True)
+                self.restart_button.setEnabled(True)        
+
 
     def update_listbox_UI(self, new_item):
         if self.playing_item is not None:
             self.playing_item.setForeground(QBrush())
             
+        
         new_item.setForeground(QColor("#FFC400"))
         new_item.setSelected(False)
 
