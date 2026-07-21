@@ -159,8 +159,15 @@ class MahouInterface(QMainWindow):
     def save_personalized_options(self):
         options_save_file = Path ("mahou_cache") / ("app_cache") / "user_settings.json"
 
+        options_save_file.parent.mkdir(parents = True, exist_ok = True)
+
+
+
         view_restart = self.view_restart_button.isChecked()
         view_folder = self.view_folder_button.isChecked()
+
+
+
 
         options = {
             "view restart": view_restart,
@@ -372,6 +379,7 @@ class MahouInterface(QMainWindow):
 
         self.now_playing.setWordWrap(True)
         self.now_playing.hide()
+        self.now_playing.setObjectName("now_playing")
         self.right_panel.addWidget(self.now_playing, alignment = align.AlignTop)
 
         

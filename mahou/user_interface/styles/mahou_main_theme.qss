@@ -14,9 +14,21 @@ QLabel {
 }
 
 QLabel#title {
-    color: #EEEEEE;
+    color: #eeeeee;
     font-family: "Bahnschrift";
     font-size: 41px;
+    font-weight: bold;
+}
+
+QLabel#title:hover {
+    color: qlineargradient(
+        x1:0, y1:0,
+        x2:0, y2:1,
+
+        stop:0 #eeeeee,
+        stop:1 #c678eb
+    );
+
 }
 
 
@@ -218,8 +230,24 @@ QSlider::handle:horizontal:pressed {
 
 
 
-/* QMenuBar {
-    background-color: #444444;
+QMenuBar {
+    background-color: #3d3d3d;
     font-family: "Bahnschrift";
     color: white;
-} */
+    font-size: 13px;
+    padding: 2px 0;
+}
+
+QMenuBar::item:hover {
+    background-color: #555555;
+}
+
+QMenu {
+    background-color: #3d3d3d;
+    font-family: "Bahnschrift";
+    color: white;
+}
+
+QMenu::item:selected {
+    background-color: #555555;
+}
