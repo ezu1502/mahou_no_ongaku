@@ -77,10 +77,12 @@ class PlayerBridge:
         self.player.stop_song()
     
         self.window.hide_now_playing()
-
+        self.window.reset_listbox_UI()
         self.window.playing_item = None
         self.window.manage_play_selected_button()
-        # self.window.reset_listbox_UI()
+        self.app.set_state(PS.IN_MENU)
+        
+        self.window.update_UI_by_state()
         self.set_window_title(reset = True)
         
     
