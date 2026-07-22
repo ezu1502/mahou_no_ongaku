@@ -1,59 +1,44 @@
+#PYSIDE6 IMPORTS
 from PySide6.QtWidgets import (QMainWindow, QWidget, QHBoxLayout, QVBoxLayout, QLabel, QPushButton, QListWidget,
 QListWidgetItem, QGridLayout, QFileDialog, QSizePolicy, QSlider)
-from PySide6.QtCore import Qt
 from PySide6.QtGui import QBrush, QColor, QShortcut, QKeySequence, QAction
+from PySide6.QtCore import Qt
 from mahou_libs.time_functions import log_delta_time
-from pathlib import Path
+from mahou_libs.mahou_math import conversions
+from mahou.user_interface.player_bridge import PlayerBridge
 from mahou.core.song import Song
 from mahou.core.ENUMS import PS
-from mahou.user_interface.player_bridge import PlayerBridge
-from mahou_libs.mahou_math import conversions
-
+from pathlib import Path
 import json
+
+
 
 
 align = Qt.AlignmentFlag
 size_policy = QSizePolicy.Policy
 
-class MahouInterface(QMainWindow):
-    @log_delta_time
-    def __init__(self, player, app):
+
+class MahouMainScreen(QWidget):
+    def __init__(self, main_window, app, player) -> None:
         super().__init__()
-        
-        self.player = player
+
+        self.main_window = main_window
         self.app = app
-        self.player_bridge = PlayerBridge(window = self)
-
-        self.playing_item = None
-        self.user_options_dict = None
-
-        self.WINDOW_TITLE = "MAHOU NO ONGAKU - True Music Player"
-        self.setWindowTitle(self.WINDOW_TITLE)
-
-        WINDOW_WIDTH, WINDOW_HEIGHT = 900, 600
-        self.setFixedSize(WINDOW_WIDTH, WINDOW_HEIGHT)
-
-        style_path = Path(__file__).parent / "styles" / "mahou_main_theme.qss"
-        self.setStyleSheet(self.load_stylesheet_string(style_path))
+        self.player = player
+        self.bridge = PlayerBridge(window = self)
 
         self.central_widget = QWidget()
-        self.setCentralWidget(self.central_widget)
-    
         self.main_layout = QVBoxLayout()
         self.main_layout.setAlignment(align.AlignTop)
         self.central_widget.setLayout(self.main_layout)
 
-        self.set_interface_aspect()
-        self.set_shortcuts()
-        self.setup_menu_bar()
-
 
     def handle_duration_changed(self, duration):
-        self.progress_bar.setMaximum(duration)
-
-        duration_string = conversions.seconds_to_base60(duration/1000)
-        self.duration_label.setText(f"{duration_string}")
-
+            self.progress_bar.setMaximum(duration)
+    
+            duration_string = conversions.seconds_to_base60(duration/1000)
+            self.duration_label.setText(f"{duration_string}")
+    
     def handle_position_changed(self, position): #esse acha a posição depois do usuario arrastar
         if not self.progress_bar.isSliderDown(): #IsSliderDown significa que o usuario ta segurando
             self.progress_bar.setValue(position)
@@ -68,71 +53,23 @@ class MahouInterface(QMainWindow):
         position = self.progress_bar.value()
         self.player.set_pos(position)
 
-   
-
+    
     def set_shortcuts(self):
         self.toggle_key = QShortcut(QKeySequence("Space"), self)
-        self.toggle_key.activated.connect(self.player_bridge.toggle)
+        self.toggle_key.activated.connect(self.bridge.toggle)
 
         self.stop_key = QShortcut(self)
         self.stop_key.setKeys([QKeySequence("Escape"), QKeySequence("S")])
-        self.stop_key.activated.connect(self.player_bridge.stop_song)
+        self.stop_key.activated.connect(self.bridge.stop_song)
 
         self.left_key = QShortcut(QKeySequence("Left"), self)
-        self.left_key.activated.connect(lambda: self.player_bridge.change_song(-1))
+        self.left_key.activated.connect(lambda: self.bridge.change_song(-1))
 
         self.right_key = QShortcut(QKeySequence("Right"), self)
-        self.right_key.activated.connect(lambda: self.player_bridge.change_song(1))
+        self.right_key.activated.connect(lambda: self.bridge.change_song(1))
 
         self.enter_key = QShortcut(QKeySequence("Return"), self)
-        self.enter_key.activated.connect(self.player_bridge.load_and_play)
-
-    
-    def setup_menu_bar(self):
-        self.menu_bar = self.menuBar()
-
-        self.file_menu = self.menu_bar.addMenu("File")
-        self.view_menu = self.menu_bar.addMenu("View")
-        self.themes_menu = self.menu_bar.addMenu("Theme")
-        self.shortcuts_menu = self.menu_bar.addMenu("Shortcuts")
-        self.about_menu = self.menu_bar.addMenu("About")
-
-        self.choose_folder_action = QAction("Choose Folder")
-        self.choose_folder_action.setShortcut("Ctrl+O")
-        self.choose_folder_action.triggered.connect(self.choose_folder)
-
-        self.view_restart_button = QAction("Restart Button")
-        self.view_restart_button.setCheckable(True)
-        self.view_restart_button.toggled.connect(self.toggle_restart_button_visibility)
-
-        self.view_folder_button = QAction("Folder Button")
-        self.view_folder_button.setCheckable(True)
-        self.view_folder_button.toggled.connect(self.toggle_folder_button_visibility)
-
-
-        if self.user_options_dict is not None:
-            self.view_restart_button.setChecked(self.user_options_dict["restart"])
-            self.view_folder_button.setChecked(self.user_options_dict["folder"])
-        else:
-            self.view_restart_button.setChecked(True)
-            self.view_folder_button.setChecked(True)
-
-
-        self.dark_theme_action = QAction("Dark Theme")
-        self.light_theme_action = QAction("Light Theme")
-        
-        self.stop_song_shortcut = QAction("Stop Song - [S]")
-
-        self.shortcuts_menu.addAction(self.stop_song_shortcut)
-
-        self.themes_menu.addAction(self.dark_theme_action)
-        self.themes_menu.addAction(self.light_theme_action)
-
-        self.view_menu.addAction(self.view_restart_button)
-        self.view_menu.addAction(self.view_folder_button)
-
-        self.file_menu.addAction(self.choose_folder_action)
-
+        self.enter_key.activated.connect(self.bridge.load_and_play)
 
 
     def toggle_restart_button_visibility(self, checked):
@@ -160,8 +97,8 @@ class MahouInterface(QMainWindow):
 
 
 
-        view_restart = self.view_restart_button.isChecked()
-        view_folder = self.view_folder_button.isChecked()
+        view_restart = self.main_window.view_restart_button.isChecked()
+        view_folder = self.main_window.view_folder_button.isChecked()
 
 
 
@@ -248,7 +185,7 @@ class MahouInterface(QMainWindow):
 
         self.play_pause_button = QPushButton("PLAY")
         self.play_pause_button.setFixedSize(300, 60)
-        self.play_pause_button.clicked.connect(self.player_bridge.toggle)
+        self.play_pause_button.clicked.connect(self.bridge.toggle)
         self.play_pause_button.setObjectName("play_button")
 
         self.right_panel.addWidget(self.play_pause_button, alignment = align.AlignHCenter)
@@ -264,7 +201,7 @@ class MahouInterface(QMainWindow):
         
         self.restart_button = QPushButton("Restart Song")
         self.restart_button.setFixedSize(300, 60)
-        self.restart_button.pressed.connect(self.player_bridge.restart_song)
+        self.restart_button.pressed.connect(self.bridge.restart_song)
 
         self.restart_button.setEnabled(False)
 
@@ -287,12 +224,12 @@ class MahouInterface(QMainWindow):
 
         self.previous_button = QPushButton("Previous")
         self.previous_button.setFixedSize(145, 60)
-        self.previous_button.pressed.connect(lambda: self.player_bridge.change_song(-1))
+        self.previous_button.pressed.connect(lambda: self.bridge.change_song(-1))
 
 
         self.next_button = QPushButton("Next")
         self.next_button.setFixedSize(145, 60)
-        self.next_button.pressed.connect(lambda: self.player_bridge.change_song(1))
+        self.next_button.pressed.connect(lambda: self.bridge.change_song(1))
 
         self.previous_button.setEnabled(False)
         self.next_button.setEnabled(False)
@@ -306,7 +243,7 @@ class MahouInterface(QMainWindow):
         # * PLAY SELECTED BUTTON -------
         self.play_selected_button = QPushButton("Play Selected Song")
         self.play_selected_button.setFixedSize(300, 50)
-        self.play_selected_button.pressed.connect(self.player_bridge.play_selected)
+        self.play_selected_button.pressed.connect(self.bridge.play_selected)
         self.play_selected_button.setEnabled(False)
         self.right_panel.addWidget(self.play_selected_button, alignment = align.AlignHCenter)
 
@@ -361,7 +298,7 @@ class MahouInterface(QMainWindow):
 
         self.right_panel.addLayout(self.bar_and_numbers_layout)
         
- # * NOW PLAYING LABEL
+    # * NOW PLAYING LABEL
 
         self.right_panel.addSpacing(7)
 
@@ -410,7 +347,7 @@ class MahouInterface(QMainWindow):
             song_item.setData(Qt.ItemDataRole.UserRole, item)
             self.listbox.addItem(song_item)
 
-   
+    
     @property
     def song_list(self):
         return self.app.library.song_list
@@ -432,7 +369,7 @@ class MahouInterface(QMainWindow):
         self.app.set_library_folder(folder)
         new_list = self.app.get_library_song_list
 
-        self.player_bridge.stop_song()
+        self.bridge.stop_song()
 
         self.set_listbox_list(new_list)
         
@@ -466,10 +403,9 @@ class MahouInterface(QMainWindow):
                 self.previous_button.setEnabled(True)
                 self.restart_button.setEnabled(True)        
 
-
     def update_listbox_UI(self, new_item):
-        if self.playing_item is not None:
-            self.playing_item.setForeground(QBrush())
+        if self.main_window.playing_item is not None:
+            self.main_window.playing_item.setForeground(QBrush())
             
         
         new_item.setForeground(QColor("#FFC400"))
@@ -481,14 +417,14 @@ class MahouInterface(QMainWindow):
         item = selected_items[0] if selected_items else None  
         
         
-        self.play_selected_button.setEnabled(item is not self.playing_item and item is not None)
+        self.play_selected_button.setEnabled(item is not self.main_window.playing_item and item is not None)
 
 
     def reset_listbox_UI(self):
-        if self.playing_item is None:
+        if self.main_window.playing_item is None:
             return
         
-        self.playing_item.setForeground(QBrush())
+        self.main_window.playing_item.setForeground(QBrush())
 
     def song_list_length(self) -> int:
         return len(self.app.library.song_list)
@@ -518,17 +454,4 @@ class MahouInterface(QMainWindow):
             return
         
         self.now_playing.hide()
-
-    #endregion
-
-    #region STYLESHEET
-
-    def load_stylesheet_string(self, style_path: Path | str):
-        if isinstance(style_path, str):
-            style_path = Path(style_path)
-
-        return style_path.read_text(encoding = "utf-8")
-    
-    #endregion
-
     

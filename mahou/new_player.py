@@ -30,7 +30,9 @@ class MahouPlayer(QObject):
         self.media_player.durationChanged.connect(self.handle_duration_changed) #Duração total mudou
         self.media_player.positionChanged.connect(self.handle_position_changed)
 
-        self.current_song: Song | None = None
+        self.loaded_item = None
+
+
         
 
     def handle_duration_changed(self, duration: int):
