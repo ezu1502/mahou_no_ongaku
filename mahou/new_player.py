@@ -41,13 +41,10 @@ class MahouPlayer(QObject):
     def handle_position_changed(self, position: int):
         self.position_changed.emit(position)
 
-
     def handle_media_status(self, status: QMediaPlayer.MediaStatus):
         if status == QMediaPlayer.MediaStatus.EndOfMedia:
             print("Song ended!")
             self.song_ended.emit()
-
-
 
     def handle_playback_state(self, state: PlayerState):
         match state:
@@ -60,6 +57,8 @@ class MahouPlayer(QObject):
                 pass
 
         self.state_changed.emit()
+
+
 
 
     def load_song(self, song: Song):

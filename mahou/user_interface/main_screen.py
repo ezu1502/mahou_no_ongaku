@@ -23,7 +23,7 @@ class MahouMainScreen(QWidget):
         self.app = app
 
         self.player = app.player
-        self.bridge = PlayerBridge(window = self)
+        self.bridge = PlayerBridge(master = self)
 
         self.playing_item = None
 
@@ -34,6 +34,7 @@ class MahouMainScreen(QWidget):
         self.set_interface_aspect()
         self.set_keyboard_shortcuts()
 
+# region SIGNAL HANDLERS
 
     def handle_duration_changed(self, duration):
         self.progress_bar.setMaximum(duration)
@@ -55,23 +56,6 @@ class MahouMainScreen(QWidget):
         position = self.progress_bar.value()
         self.player.set_pos(position)
 
-    def set_keyboard_shortcuts(self):
-        self.toggle_key = QShortcut(QKeySequence("Space"), self)
-        self.toggle_key.activated.connect(self.bridge.toggle)
-
-        self.stop_key = QShortcut(self)
-        self.stop_key.setKeys([QKeySequence("Escape"), QKeySequence("S")])
-        self.stop_key.activated.connect(self.bridge.stop_song)
-
-        self.left_key = QShortcut(QKeySequence("Left"), self)
-        self.left_key.activated.connect(lambda: self.bridge.change_song(-1))
-    
-        self.right_key = QShortcut(QKeySequence("Right"), self)
-        self.right_key.activated.connect(lambda: self.bridge.change_song(1))
-
-        self.enter_key = QShortcut(QKeySequence("Return"), self)
-        self.enter_key.activated.connect(self.bridge.load_and_play)
-
     def toggle_restart_button_visibility(self, checked):
         if checked:
             self.restart_button.show()
@@ -87,45 +71,48 @@ class MahouMainScreen(QWidget):
             self.folder_button.hide()
 
         self.save_personalized_options()
+
+    def manage_play_selected_button(self):
+        selected_items = self.listbox.selectedItems()
+        item = selected_items[0] if selected_items else None  
         
-
-    def save_personalized_options(self):
-        options_save_file = Path ("mahou_cache") / ("app_cache") / "user_settings.json"
-
-        options_save_file.parent.mkdir(parents = True, exist_ok = True)
-
-        view_restart = self.main_window.view_restart_button.isChecked()
-        view_folder = self.main_window.view_folder_button.isChecked()
-
-        options = {
-            "view restart": view_restart,
-            "view folder": view_folder,
-        }
-
-        with options_save_file.open("w", encoding = "utf-8") as save:
-            json.dump(options, save, ensure_ascii = True, indent = 4)
-
-    def load_personalized_options(self):
-        options_save_file = Path ("mahou_cache") / ("app_cache") / "user_settings.json"
-        valid = options_save_file.exists() and options_save_file.is_file()
         
-        if not valid:
+        self.play_selected_button.setEnabled(item is not self.playing_item and item is not None)
+
+    def show_now_playing(self, text: str) -> None:
+
+        self.now_playing.setText(f'Now Playing: <span style = "color: #FFC400">{text}</span>')
+
+        if self.now_playing.isVisible():
             return
         
-        with options_save_file.open("r", encoding = "utf-8") as options:
-            option_dict = json.load(options)
+        self.now_playing.show()
+        
+    def hide_now_playing(self) -> None:
+        if not self.now_playing.isVisible():
+            return
+        
+        self.now_playing.hide()
 
-        restart_visible = option_dict["view restart"]
-        folder_visible = option_dict["view folder"]
+#endregion
+#region UI BUILDING
 
-        self.restart_button.setVisible(restart_visible)
-        self.folder_button.setVisible(folder_visible)
+    def set_keyboard_shortcuts(self):
+        self.toggle_key = QShortcut(QKeySequence("Space"), self)
+        self.toggle_key.activated.connect(self.bridge.toggle)
 
-        self.user_options_dict = {
-            "restart" : restart_visible,
-            "folder": folder_visible
-        }
+        self.stop_key = QShortcut(self)
+        self.stop_key.setKeys([QKeySequence("Escape"), QKeySequence("S")])
+        self.stop_key.activated.connect(self.bridge.stop_song)
 
+        self.left_key = QShortcut(QKeySequence("Left"), self)
+        self.left_key.activated.connect(lambda: self.bridge.change_song(-1))
+
+        self.right_key = QShortcut(QKeySequence("Right"), self)
+        self.right_key.activated.connect(lambda: self.bridge.change_song(1))
+
+        self.enter_key = QShortcut(QKeySequence("Return"), self)
+        self.enter_key.activated.connect(self.bridge.load_and_play)
 
     @log_delta_time
     def set_interface_aspect(self):
@@ -305,25 +292,55 @@ class MahouMainScreen(QWidget):
         self.now_playing.setObjectName("now_playing")
         self.right_panel.addWidget(self.now_playing, alignment = align.AlignTop)
 
-        
-
-
-
-
-
         # * -------------
 
         self.set_listbox_list(self.song_list)
 
         # * ------------------------------
 
+#endregion
+#region SAVE/LOAD options
 
+    def save_personalized_options(self):
+        options_save_file = Path ("mahou_cache") / ("app_cache") / "user_settings.json"
+
+        options_save_file.parent.mkdir(parents = True, exist_ok = True)
+
+        view_restart = self.main_window.view_restart_button.isChecked()
+        view_folder = self.main_window.view_folder_button.isChecked()
+
+        options = {
+            "view restart": view_restart,
+            "view folder": view_folder,
+        }
+
+        with options_save_file.open("w", encoding = "utf-8") as save:
+            json.dump(options, save, ensure_ascii = True, indent = 4)
+
+    def load_personalized_options(self):
+        options_save_file = Path ("mahou_cache") / ("app_cache") / "user_settings.json"
+        valid = options_save_file.exists() and options_save_file.is_file()
+        
+        if not valid:
+            return
+        
+        with options_save_file.open("r", encoding = "utf-8") as options:
+            option_dict = json.load(options)
+
+        restart_visible = option_dict["view restart"]
+        folder_visible = option_dict["view folder"]
+
+        self.restart_button.setVisible(restart_visible)
+        self.folder_button.setVisible(folder_visible)
+
+        self.main_window.user_options_dict = {
+            "restart" : restart_visible,
+            "folder": folder_visible
+        }
+
+
+#endregion
 #region LIST REGION
-
-    @property
-    def apps_music_list(self):
-        return self.app.library.song_list
-
     @log_delta_time
     def set_listbox_list(self, list_to_add: list[Song]):
         if list_to_add is None:
@@ -336,18 +353,14 @@ class MahouMainScreen(QWidget):
             song_item.setData(Qt.ItemDataRole.UserRole, item)
             self.listbox.addItem(song_item)
 
+    def song_list_length(self) -> int:
+        return len(self.app.library.song_list)
     
-    @property
-    def song_list(self):
-        return self.app.library.song_list
-    
-
     def get_listbox_selection(self):
         selected_items = self.listbox.selectedItems()
         item = selected_items[0] if selected_items else None  
         return item
     
-
     def choose_folder(self):
         folder_string = QFileDialog.getExistingDirectory(self, "Choose a folder")
         if not folder_string: 
@@ -361,8 +374,11 @@ class MahouMainScreen(QWidget):
         self.bridge.stop_song()
 
         self.set_listbox_list(new_list)
-        
     
+    @property
+    def song_list(self):
+        return self.app.library.song_list
+
 #endregion
 #region UI Update
     def update_UI_by_state(self):
@@ -400,47 +416,16 @@ class MahouMainScreen(QWidget):
         new_item.setForeground(QColor("#FFC400"))
         new_item.setSelected(False)
 
-
-    def manage_play_selected_button(self):
-        selected_items = self.listbox.selectedItems()
-        item = selected_items[0] if selected_items else None  
-        
-        
-        self.play_selected_button.setEnabled(item is not self.playing_item and item is not None)
-
-
     def reset_listbox_UI(self):
         if self.playing_item is None:
             return
         
         self.playing_item.setForeground(QBrush())
 
-    def song_list_length(self) -> int:
-        return len(self.app.library.song_list)
-
-    def get_state(self) -> PS:
-        return self.app.state
-    
-    def set_state(self, state: PS):
-        self.app.state = state
-        self.update_UI_by_state()
-
     def see_item(self, item) -> None:
         self.listbox.scrollToItem(item)
 
 
-    def show_now_playing(self, text: str) -> None:
-
-        self.now_playing.setText(f'Now Playing: <span style = "color: #FFC400">{text}</span>')
-
-        if self.now_playing.isVisible():
-            return
-        
-        self.now_playing.show()
-        
-    def hide_now_playing(self) -> None:
-        if not self.now_playing.isVisible():
-            return
-        
-        self.now_playing.hide()
-    
+#region state
+    def get_state(self) -> PS:
+        return self.app.state

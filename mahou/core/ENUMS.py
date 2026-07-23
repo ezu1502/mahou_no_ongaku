@@ -9,7 +9,7 @@ class PS(Enum):
     SHUT_DOWN = "shut_down"
 
 class Themes(Enum):
-    MAIN = "main_theme"
+    DARK = "main_theme"
     LIGHT = "light_theme"
     HABANERO = "habanero_theme"
     

@@ -18,7 +18,7 @@ class SongLibrary:
 
     @property
     def default_folder(self):
-        default_folder_cache_file = Path ("mahou_cache") / ("app_cache") / "folder_settings.json"
+        default_folder_cache_file = Path ("mahou_files") / ("mahou_cache") / ("app_cache") / "folder_settings.json"
 
         if default_folder_cache_file.exists():
             try:
@@ -32,8 +32,6 @@ class SongLibrary:
                 return None
         return None
             
-
-
 
     def save_folder(self, folder):
         default_folder_cache_file = Path ("mahou_cache") / ("app_cache") / "folder_settings.json"
