@@ -1,0 +1,8 @@
+{
+    "view": {
+        "restart_button": true,
+        "folder_button": true
+    },
+    "default_folder": "C:\\Users\\dudul\\Mahou no Ongaku",
+    "theme": "light_theme"
+}

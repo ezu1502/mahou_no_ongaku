@@ -1,4 +1,5 @@
 from enum import Enum
+from pathlib import Path
 
 class PS(Enum):
     PLAYING = "playing"
@@ -12,4 +13,8 @@ class Themes(Enum):
     DARK = "main_theme"
     LIGHT = "light_theme"
     HABANERO = "habanero_theme"
+
+
+class Paths(Enum):
+    SETTINGS_FILE = Path("mahou_files") / ("user_settings.json")
     

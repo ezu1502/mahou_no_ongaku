@@ -7,13 +7,21 @@ from mahou_libs.time_functions import log_delta_time
 from mahou_libs.mahou_math import conversions
 from mahou.user_interface.player_bridge import PlayerBridge
 from mahou.core.song import Song
-from mahou.core.enums import PS
+from mahou.core.enums import PS, Paths, Themes
 from pathlib import Path
 import json
-
+from mahou import file_manager
 
 align = Qt.AlignmentFlag
 size_policy = QSizePolicy.Policy
+
+HIGHLIGHT_COLORS = {
+    Themes.DARK: "#FFC400",
+    Themes.LIGHT: "#7F00D3",
+    Themes.HABANERO: "#EF3300"
+}
+
+
 
 class MahouMainScreen(QWidget):
     def __init__(self, main_window, app) -> None:
@@ -33,6 +41,9 @@ class MahouMainScreen(QWidget):
 
         self.set_interface_aspect()
         self.set_keyboard_shortcuts()
+
+        self.current_song_title = None
+
 
 # region SIGNAL HANDLERS
 
@@ -62,7 +73,7 @@ class MahouMainScreen(QWidget):
         else:
             self.restart_button.hide()
 
-        self.save_personalized_options()
+        self.save_view_options()
 
     def toggle_folder_button_visibility(self, checked):
         if checked:
@@ -70,7 +81,7 @@ class MahouMainScreen(QWidget):
         else:
             self.folder_button.hide()
 
-        self.save_personalized_options()
+        self.save_view_options()
 
     def manage_play_selected_button(self):
         selected_items = self.listbox.selectedItems()
@@ -79,14 +90,27 @@ class MahouMainScreen(QWidget):
         
         self.play_selected_button.setEnabled(item is not self.playing_item and item is not None)
 
-    def show_now_playing(self, text: str) -> None:
+    def show_now_playing(self, text: str = "None", just_update_color = False) -> None:
+        color = self.get_highlight_color()
 
-        self.now_playing.setText(f'Now Playing: <span style = "color: #FFC400">{text}</span>')
+        if just_update_color:
+            if not self.now_playing.isVisible() or self.current_song_title is None:
+                return
+            text = self.current_song_title
+
+        self.current_song_title = text
+
+        self.now_playing.setText(f'Now Playing: <span style = "color: {color}">{text}</span>')
 
         if self.now_playing.isVisible():
             return
-        
+
         self.now_playing.show()
+
+
+ 
+
+        
         
     def hide_now_playing(self) -> None:
         if not self.now_playing.isVisible():
@@ -185,7 +209,7 @@ class MahouMainScreen(QWidget):
         self.right_panel.addWidget(self.restart_button, alignment = align.AlignHCenter)
 
         # This loads user's preferences about the buttons visibility
-        self.load_personalized_options()
+        self.load_view_options()
         
         # * PREVIOUS/NEXT SONG BUTTONS
 
@@ -301,41 +325,31 @@ class MahouMainScreen(QWidget):
 #endregion
 #region SAVE/LOAD options
 
-    def save_personalized_options(self):
-        options_save_file = Path ("mahou_cache") / ("app_cache") / "user_settings.json"
-
-        options_save_file.parent.mkdir(parents = True, exist_ok = True)
-
+    def save_view_options(self) -> None:
         view_restart = self.main_window.view_restart_button.isChecked()
         view_folder = self.main_window.view_folder_button.isChecked()
 
-        options = {
-            "view restart": view_restart,
-            "view folder": view_folder,
+        view_options = {
+            "restart_button": view_restart,
+            "folder_button": view_folder,
         }
 
-        with options_save_file.open("w", encoding = "utf-8") as save:
-            json.dump(options, save, ensure_ascii = True, indent = 4)
+        file_manager.save_setting(view_options, "view")
 
-    def load_personalized_options(self):
-        options_save_file = Path ("mahou_cache") / ("app_cache") / "user_settings.json"
-        valid = options_save_file.exists() and options_save_file.is_file()
-        
-        if not valid:
-            return
-        
-        with options_save_file.open("r", encoding = "utf-8") as options:
-            option_dict = json.load(options)
+    def load_view_options(self) -> None:
+        option_dict = file_manager.read_file(Paths.SETTINGS_FILE)
 
-        restart_visible = option_dict["view restart"]
-        folder_visible = option_dict["view folder"]
+        view_options = option_dict.get("view", {}) #get vai tentar puxar um parametro e retorna o segundo se n achar
+
+        restart_visible = view_options.get("restart_button", True)
+        folder_visible = view_options.get("folder_button", True)
 
         self.restart_button.setVisible(restart_visible)
         self.folder_button.setVisible(folder_visible)
 
         self.main_window.user_options_dict = {
-            "restart" : restart_visible,
-            "folder": folder_visible
+            "restart_button" : restart_visible,
+            "folder_button": folder_visible
         }
 
 
@@ -408,13 +422,25 @@ class MahouMainScreen(QWidget):
                 self.previous_button.setEnabled(True)
                 self.restart_button.setEnabled(True)        
 
+    def get_highlight_color(self):
+        theme = self.main_window.current_theme
+        color = HIGHLIGHT_COLORS.get(theme, "#FF0000")
+        return color
     def update_listbox_UI(self, new_item):
         if self.playing_item is not None:
             self.playing_item.setForeground(QBrush())
             
-        
-        new_item.setForeground(QColor("#FFC400"))
+        color = self.get_highlight_color()
+        new_item.setForeground(QColor(color))
         new_item.setSelected(False)
+
+    def update_highlight_theme(self, theme):
+        if self.playing_item is None:
+            return
+        
+        color = HIGHLIGHT_COLORS.get(theme, "#FF0000")
+        self.playing_item.setForeground(QColor(color))
+        self.playing_item.setSelected(False)
 
     def reset_listbox_UI(self):
         if self.playing_item is None:

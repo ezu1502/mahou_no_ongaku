@@ -12,6 +12,7 @@ class PlayerBridge:
         self.player.state_changed.connect(self.master.update_UI_by_state)
         self.player.song_ended.connect(lambda: self.change_song(1))
 
+        self.set_window_title = self.master.main_window.set_window_title
 
         self.app = self.master.app
 
@@ -83,22 +84,6 @@ class PlayerBridge:
         self.master.update_UI_by_state()
         self.set_window_title(reset = True)
         
-    
-    def set_window_title(self, song_title = None, reset = False):
-        if reset:
-            self.master.setWindowTitle(self.master.WINDOW_TITLE)
-            return
-        
-        MAX_SIZE = 37
-        if song_title is None:
-            return
-        
-        if len(song_title) > MAX_SIZE:
-            song_title = song_title[:MAX_SIZE - 1] + "…"
-
-        if song_title:
-            self.master.setWindowTitle(f"{song_title} - MAHOU NO ONGAKU")
-
 
     def restart_song(self):
         self.player.set_pos(0)

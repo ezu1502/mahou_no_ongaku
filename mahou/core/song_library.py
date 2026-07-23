@@ -4,6 +4,8 @@ from mahou.core.song import Song
 from send2trash import send2trash
 import json
 from mahou_libs.bocca import BoccaFiglia
+from mahou.core.enums import Paths
+from mahou import file_manager
 
 log = BoccaFiglia("song_library", "#FF0000")
 
@@ -18,27 +20,17 @@ class SongLibrary:
 
     @property
     def default_folder(self):
-        default_folder_cache_file = Path ("mahou_files") / ("mahou_cache") / ("app_cache") / "folder_settings.json"
+        options_dict = file_manager.read_file(Paths.SETTINGS_FILE)
 
-        if default_folder_cache_file.exists():
-            try:
-                with default_folder_cache_file.open("r", encoding = "utf-8") as cache:
-                    dictionary = json.load(cache)
-                    folder = dictionary.get("default_folder")
-                    return Path(folder) if folder is not None else None
+        folder = options_dict.get("default_folder", None)
 
-            except (json.JSONDecodeError, TypeError, KeyError): #(quebrado, invalido, sem a chave)
-                log.warning("Couldn't read JSON file")
-                return None
-        return None
+        return Path(folder) if folder is not None else None
             
 
     def save_folder(self, folder):
-        default_folder_cache_file = Path ("mahou_cache") / ("app_cache") / "folder_settings.json"
-        dictionary = {"default_folder": str(folder)}
-        default_folder_cache_file.parent.mkdir(parents = True, exist_ok = True)
-        with default_folder_cache_file.open("w", encoding = "utf-8") as cache:
-            json.dump(dictionary, cache, ensure_ascii = True, indent = 4)
+        folder = str(folder)
+
+        file_manager.save_setting(folder, "default_folder")
 
 
     def set_folder(self, folder: Path) -> None:

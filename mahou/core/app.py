@@ -1,12 +1,12 @@
 from mahou.new_player import MahouPlayer
-from mahou.core.enums import PS
+from mahou.core.enums import PS, Paths
 from mahou.user_interface.window import MahouInterface
 from mahou_libs.time_functions import log_delta_time, first_point, second_point
 from PySide6.QtWidgets import QApplication
 from mahou.core.song_library import SongLibrary
 import sys
 import time
-
+from mahou import file_manager as FM
 
 
 class App:
@@ -27,7 +27,10 @@ class App:
         first = first_point()
 
         self.mahou_window.show()
+
         second_point(first)
+
+
         
 
         

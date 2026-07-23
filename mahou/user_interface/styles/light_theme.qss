@@ -9,33 +9,27 @@ QMainWindow {
 }
 /* QLABEL */
 QLabel {
-    color: #EEEEEE;
+    color: #111111;
     font-family: "Bahnschrift";
     font-size: 18px;
 }
 
 QLabel#title {
-    color: #eeeeee;
+    color: #111111;
     font-family: "Bahnschrift";
     font-size: 41px;
     font-weight: bold;
 }
 
 QLabel#title:hover {
-    color: qlineargradient(
-        x1:0, y1:0,
-        x2:0, y2:1,
-
-        stop:0 #eeeeee,
-        stop:1 #c678eb
-    );
+    color: #590788;
 
 }
 
 /* QPUSHBUTTON */
 QPushButton {
-    background-color: #090909;
-    color: #EEEEEE;
+    background-color: #CCCCCC;
+    color: #090909;
 
     border-top: 1px solid #4A4A4A;
     border-left: 1px solid #404040;
@@ -59,25 +53,25 @@ QPushButton#play_button {
 
 
 QPushButton:hover {
-    background-color: #111111;
+    background-color: #AAAAAA;
 }
 QPushButton#play_button {
     font-size: 26px;
 }
 
 QPushButton#play_button:hover {
-    color: #a41cff;
-    background-color: #0c0c0c;
+    color: #8000f8;
+    background-color: #AAAAAA;
     border-top: 1px solid #734a79;
     border-left: 1px solid #3d2d3f;
 }
 QPushButton#play_button:pressed {
-    color: #a41cff;
-    background-color: #0d0d0e;
-    border: 1px solid #a41cff;
+    color: #EEEEEE;
+    background-color: #8f8f8f;
+    border: 1px solid #8000f8;
 }
 QPushButton:pressed {
-    background-color: #333333;
+    background-color: #8f8f8f;
     border-top: 1px solid #000000;
     border-left: 1px solid #000000;
     border-bottom: 1px solid #4A4A4A;
@@ -85,15 +79,15 @@ QPushButton:pressed {
 }
 
 QPushButton:disabled {
-    background-color: #191919;
-    color: #353535;
+    background-color: #818181;
+    color: #555555;
 }
 
 /* QLISTWIDGET */
 
 QListWidget {
-    background-color: #141414;
-    color: #EEEEEE;
+    background-color: #CCCCCC;
+    color: #111111;
     font-family: "Bahnschrift";
     font-size: 16px;
 
@@ -113,8 +107,8 @@ QListWidget {
         x1:0, y1:0,
         x2:1, y2:0,
 
-        stop:0 #202020,
-        stop:1 #171717
+        stop:0 #999999,
+        stop:1 #CCCCCC
     );
     
 }
@@ -124,7 +118,7 @@ QListWidget::item {
     font-weight: bold;
 }   
 QListWidget::item:hover {
-    background: #2a2a2a;
+    background: #AAAAAA;
     border: none
 }   
 QListWidget::item:selected {
@@ -132,45 +126,43 @@ QListWidget::item:selected {
         x1:0, y1:0,
         x2:0, y2:1,
 
-        stop:0 #3B3B3B,
-        stop:1 #555555
+        stop:0 #858585,
+        stop:1 #7B7B7B
     );
     border: none;
 }   
 QListWidget::item:selected:!active {
-    color: #EEEEEE;
+    color: #111111;
 }   
-QListWidget::item:selected:!active {
-    
-}   
+
 
 /* QSCROLLBAR */
 
 
 QScrollBar:vertical {
-    background: #101010;
+    background: #BBBBBB;
     width: 12px;
     margin: 0px;
 }
 
 QScrollBar::handle:vertical{
-    background: #404040;
+    background: #AAAAAA;
     border-radius: 3px;
     min-height: 50px;
 }
 
 QScrollBar::handle:vertical:hover{
-    background: #555555;
+    background: #999999;
 }
 QScrollBar::handle:vertical:pressed{
-    background: #9900ff;
+    background: #8700e0;
 }
 
 QScrollBar::add-page:vertical {
-    background: #222222;
+    background: #AAAAAA;
 }
 QScrollBar::sub-page:vertical {
-    background: #222222;
+    background: #AAAAAA;
 }
 
 
@@ -181,7 +173,7 @@ QSlider {
 }
 
 QSlider::groove:horizontal {
-    background-color: #555555;
+    background-color: #797979;
     height: 6px;
     border-radius: 3px;
     margin: 0 6px;
@@ -191,7 +183,7 @@ QSlider::sub-page:horizontal {
         x1:0, x2: 1,
         y1:0, y2:0,
 
-        stop:0 #c163ff,
+        stop:0 #1e1424,
         stop:1 #a41cff
     );
     margin: 0 6px;
@@ -209,7 +201,7 @@ QSlider::add-page:horizontal {
 }
 
 QSlider::handle:horizontal {
-    background-color: #aaaaaa;
+    background-color: #4e4e4e;
     height: 12px;
     width: 12px;
     border-radius: 6px;
@@ -232,23 +224,24 @@ QSlider::handle:horizontal:pressed {
 /* QMENUBAR */
 
 QMenuBar {
-    background-color: #3d3d3d;
+    background-color: #BBBBBB;
     font-family: "Bahnschrift";
-    color: white;
+    color: #111111;
     font-size: 13px;
+    font-weight: bold;
     padding: 2px 0;
 }
 
 QMenuBar::item:hover {
-    background-color: #555555;
+    background-color: #888888;
 }
 
 QMenu {
-    background-color: #3d3d3d;
+    background-color: #DDDDDD;
     font-family: "Bahnschrift";
-    color: white;
+    color: #111111;
 }
 
 QMenu::item:selected {
-    background-color: #555555;
+    background-color: #777777;
 }
